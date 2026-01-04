@@ -1,0 +1,48 @@
+# Implementation Plan - Hello World Lightning App
+
+This plan outlines the steps to initialize a new React Native application and integrate the Breez SDK to create a simple "Hello World" Lightning Network wallet.
+
+## Goal Description
+Create a functional React Native app named `BoltZap` (Project Name: `BoltZap`) that:
+1.  Initializes **LDK Node** (Self-custodial Lightning Node).
+2.  Generates a dedicated Lightning Node ID.
+3.  Can receive a small testnet payment.
+
+## Proposed Changes
+
+### 1. Project Initialization
+*   **Directory**: `/Users/imseunghoon/Desktop/bolt-zap` (We will initialize `BoltZap` inside here and move files to root if possible, or keep structure)
+*   **Command**: `npx @react-native-community/cli init BoltZap --version latest`
+*   **Template**: Standard TypeScript template is preferred if available, otherwise will add TS support.
+
+### 2. Dependencies
+*   **[NEW]** `ldk-node-rn`: The Lightning Dev Kit Node library.
+*   **[DELETE]** `@breeztech/react-native-breez-sdk` (Deprecated/Requires keys).
+*   **[NEW]** `react-native-get-random-values`: Polyfill.
+*   **[NEW]** `react-native-fs`: For file system access.
+
+### 3. Configuration
+*   **Android**: Update `build.gradle` to support strict mode or specific Kotlin versions if required by Breez SDK.
+*   **iOS**: `pod install` with updated Podfile.
+*   **Permissions**: Add Internet permissions (standard).
+
+### 4. Implementation Steps
+#### [NEW] [App.tsx](file:///Users/imseunghoon/Desktop/bolt-zap/BoltZap/App.tsx)
+*   Replace default UI.
+*   Add "Connect to Lightning" button.
+*   Add logic to:
+    1.  Initialize SDK with API Key (we will use a test/public key or developer key if available, or just standard Init for Greenlight).
+    2.  Display Node ID and Status.
+    3.  Button to "Receive 1000 sats" (generate invoice).
+
+## Verification Plan
+
+### Automated Tests
+*   Run `npm run test` to check basic React rendering.
+
+### Manual Verification
+1.  **Launch App**: User runs `npm run ios` or `npm run android`.
+2.  **Connect**: User taps "Start Node" and sees "Status: Connected".
+3.  **Receive**: User taps "Receive", copies the Invoice string.
+4.  **External Pay**: User pastes Invoice into a Testnet Faucet or another wallet to pay.
+5.  **Verify Balance**: App updates balance to 1000 sats.

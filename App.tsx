@@ -1,4 +1,4 @@
-import { Builder } from 'ldk-node-rn';
+import { Builder, Config } from 'ldk-node-rn';
 import React, { useState } from 'react';
 import {
   Alert,
@@ -36,17 +36,29 @@ function App(): React.JSX.Element {
       }
 
       addLog('🚀 LDK 노드 초기화 중...');
-      
+
       // 1. 데이터 디렉토리 생성
       const path = `${RNFS.DocumentDirectoryPath}/ldk_node_data`;
       await RNFS.mkdir(path);
+      const logPath = `${RNFS.DocumentDirectoryPath}/ldk_node_logs`;
+      await RNFS.mkdir(logPath);
       addLog(`📁 데이터 경로: ${path}`);
 
       // 2. 노드 빌드 (테스트넷)
+      // v0.3.x 이상에서는 Config 객체를 먼저 생성해야 합니다.
+      const config = new Config();
+      await config.create(
+        path,
+        logPath,
+        'testnet',
+        [] // listeningAddress
+      );
+
       // Esplora를 사용하여 블록체인 데이터 동기화
       const builder = new Builder();
-      await builder.setNetwork('testnet');
-      await builder.setStorageDirPath(path);
+      await builder.fromConfig(config);
+
+      // builder.setNetwork/StoragePath는 Config에서 이미 설정됨
       await builder.setEsploraServer('https://blockstream.info/testnet/api');
       await builder.setGossipSourceRgs('https://rapidsync.lightningdevkit.org/testnet/snapshot');
 
@@ -56,7 +68,7 @@ function App(): React.JSX.Element {
       // 3. 노드 시작
       await node.start();
       runningNode = node;
-      
+
       setStatus('실행 중 (Running)');
       addLog('⚡ 노드가 시작되었습니다!');
 
@@ -79,10 +91,10 @@ function App(): React.JSX.Element {
     try {
       addLog('🔄 지갑 동기화 중...');
       await runningNode.syncWallets();
-      
+
       const channels = await runningNode.listChannels();
       addLog(`📡 채널 수: ${channels.length}`);
-      
+
       addLog('✅ 동기화 완료');
     } catch (e: any) {
       addLog(`❌ 동기화 오류: ${e.message}`);
@@ -97,7 +109,7 @@ function App(): React.JSX.Element {
       const amountMsat = 1000 * 1000;
       const expirySecs = 3600;
       const description = "BoltZap Test Invoice";
-      
+
       const inv = await runningNode.receivePayment(amountMsat, description, expirySecs);
       setInvoice(inv);
       addLog(`🧾 인보이스 생성 완료!`);
@@ -126,22 +138,22 @@ function App(): React.JSX.Element {
         </View>
 
         {invoice ? (
-           <View style={styles.card}>
-             <Text style={styles.label}>인보이스 (복사해서 지불하세요)</Text>
-             <Text style={styles.invoice} selectable>{invoice}</Text>
-           </View>
+          <View style={styles.card}>
+            <Text style={styles.label}>인보이스 (복사해서 지불하세요)</Text>
+            <Text style={styles.invoice} selectable>{invoice}</Text>
+          </View>
         ) : null}
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.button} onPress={initNode} disabled={status.includes('Running')}>
             <Text style={styles.buttonText}>{status.includes('Running') ? '노드 실행 중' : '노드 시작 (Start Node)'}</Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={[styles.button, styles.secondaryButton]} onPress={syncNode} disabled={!status.includes('Running')}>
             <Text style={styles.secondaryButtonText}>동기화 (Sync)</Text>
           </TouchableOpacity>
 
-           <TouchableOpacity style={[styles.button, styles.actionButton]} onPress={receivePayment} disabled={!status.includes('Running')}>
+          <TouchableOpacity style={[styles.button, styles.actionButton]} onPress={receivePayment} disabled={!status.includes('Running')}>
             <Text style={styles.buttonText}>1000 Sats 받기</Text>
           </TouchableOpacity>
         </View>

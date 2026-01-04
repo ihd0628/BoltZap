@@ -1,0 +1,17 @@
+# Tasks
+
+- [/] Research Lightning Network concepts and wallet development requirements <!-- id: 0 -->
+    - [/] Research core mechanics (Channels, HTLCs, Routing) <!-- id: 1 -->
+    - [/] Research comparison (On-chain vs Lightning) <!-- id: 2 -->
+
+    - [/] Research wallet development stack (LDK, Breez SDK, LND, etc.) <!-- id: 3 -->
+- [x] Create Lightning Network Learning Guide <!-- id: 4 -->
+- [x] Create "Lightning for Frontend Devs" Roadmap <!-- id: 5 -->
+- [/] Initialize React Native Project <!-- id: 6 -->
+    - [x] Create implementation plan for Hello World App <!-- id: 7 -->
+    - [x] Initialize project with React Native CLI <!-- id: 8 -->
+    - [x] Install LDK Node (`ldk-node-rn`) <!-- id: 9 -->
+- [x] Implement Hello World App <!-- id: 10 -->
+    - [x] Modify App.tsx <!-- id: 11 -->
+    - [x] Configure Polyfills <!-- id: 12 -->
+- [x] Switch to Yarn (Optional) <!-- id: 13 -->
