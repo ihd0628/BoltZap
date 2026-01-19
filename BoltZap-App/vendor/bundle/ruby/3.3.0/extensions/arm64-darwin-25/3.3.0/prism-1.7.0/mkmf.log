@@ -1,0 +1,74 @@
+find_header: checking for prism.h in /Users/seunghoon/Desktop/Bolzap/BoltZap-App/vendor/bundle/ruby/3.3.0/gems/prism-1.7.0/include... -------------------- yes
+
+DYLD_LIBRARY_PATH=.:/Users/seunghoon/.rbenv/versions/3.3.0/lib "clang -o conftest -I/Users/seunghoon/.rbenv/versions/3.3.0/include/ruby-3.3.0/arm64-darwin25 -I/Users/seunghoon/.rbenv/versions/3.3.0/include/ruby-3.3.0/ruby/backward -I/Users/seunghoon/.rbenv/versions/3.3.0/include/ruby-3.3.0 -I. -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE -D_DARWIN_UNLIMITED_SELECT -D_REENTRANT   -fdeclspec -O3 -fno-fast-math -ggdb3 -Wall -Wextra -Wextra-tokens -Wdeprecated-declarations -Wdivision-by-zero -Wdiv-by-zero -Wimplicit-function-declaration -Wimplicit-int -Wpointer-arith -Wshorten-64-to-32 -Wwrite-strings -Wold-style-definition -Wmissing-noreturn -Wno-cast-function-type -Wno-constant-logical-operand -Wno-long-long -Wno-missing-field-initializers -Wno-overlength-strings -Wno-parentheses-equality -Wno-self-assign -Wno-tautological-compare -Wno-unused-parameter -Wno-unused-value -Wunused-variable -Wmisleading-indentation -Wundef -fno-common -pipe conftest.c  -L. -L/Users/seunghoon/.rbenv/versions/3.3.0/lib -L. -fstack-protector-strong  -arch arm64   -lruby.3.3  -lpthread  "
+checked program was:
+/* begin */
+1: #include "ruby.h"
+2: 
+3: int main(int argc, char **argv)
+4: {
+5:   return !!argv[argc];
+6: }
+/* end */
+
+DYLD_LIBRARY_PATH=.:/Users/seunghoon/.rbenv/versions/3.3.0/lib "clang -I/Users/seunghoon/.rbenv/versions/3.3.0/include/ruby-3.3.0/arm64-darwin25 -I/Users/seunghoon/.rbenv/versions/3.3.0/include/ruby-3.3.0/ruby/backward -I/Users/seunghoon/.rbenv/versions/3.3.0/include/ruby-3.3.0 -I. -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE -D_DARWIN_UNLIMITED_SELECT -D_REENTRANT   -fdeclspec -O3 -fno-fast-math -ggdb3 -Wall -Wextra -Wextra-tokens -Wdeprecated-declarations -Wdivision-by-zero -Wdiv-by-zero -Wimplicit-function-declaration -Wimplicit-int -Wpointer-arith -Wshorten-64-to-32 -Wwrite-strings -Wold-style-definition -Wmissing-noreturn -Wno-cast-function-type -Wno-constant-logical-operand -Wno-long-long -Wno-missing-field-initializers -Wno-overlength-strings -Wno-parentheses-equality -Wno-self-assign -Wno-tautological-compare -Wno-unused-parameter -Wno-unused-value -Wunused-variable -Wmisleading-indentation -Wundef -fno-common -pipe -arch arm64  -c conftest.c"
+conftest.c:3:10: fatal error: 'prism.h' file not found
+    3 | #include <prism.h>
+      |          ^~~~~~~~~
+1 error generated.
+checked program was:
+/* begin */
+1: #include "ruby.h"
+2: 
+3: #include <prism.h>
+/* end */
+
+DYLD_LIBRARY_PATH=.:/Users/seunghoon/.rbenv/versions/3.3.0/lib "clang -I/Users/seunghoon/.rbenv/versions/3.3.0/include/ruby-3.3.0/arm64-darwin25 -I/Users/seunghoon/.rbenv/versions/3.3.0/include/ruby-3.3.0/ruby/backward -I/Users/seunghoon/.rbenv/versions/3.3.0/include/ruby-3.3.0 -I. -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE -D_DARWIN_UNLIMITED_SELECT -D_REENTRANT   -fdeclspec -O3 -fno-fast-math -ggdb3 -Wall -Wextra -Wextra-tokens -Wdeprecated-declarations -Wdivision-by-zero -Wdiv-by-zero -Wimplicit-function-declaration -Wimplicit-int -Wpointer-arith -Wshorten-64-to-32 -Wwrite-strings -Wold-style-definition -Wmissing-noreturn -Wno-cast-function-type -Wno-constant-logical-operand -Wno-long-long -Wno-missing-field-initializers -Wno-overlength-strings -Wno-parentheses-equality -Wno-self-assign -Wno-tautological-compare -Wno-unused-parameter -Wno-unused-value -Wunused-variable -Wmisleading-indentation -Wundef -fno-common -pipe -arch arm64 -I/Users/seunghoon/Desktop/Bolzap/BoltZap-App/vendor/bundle/ruby/3.3.0/gems/prism-1.7.0/include -c conftest.c"
+checked program was:
+/* begin */
+1: #include "ruby.h"
+2: 
+3: #include <prism.h>
+/* end */
+
+--------------------
+
+find_header: checking for prism/extension.h in /Users/seunghoon/Desktop/Bolzap/BoltZap-App/vendor/bundle/ruby/3.3.0/gems/prism-1.7.0/ext... -------------------- yes
+
+DYLD_LIBRARY_PATH=.:/Users/seunghoon/.rbenv/versions/3.3.0/lib "clang -I/Users/seunghoon/.rbenv/versions/3.3.0/include/ruby-3.3.0/arm64-darwin25 -I/Users/seunghoon/.rbenv/versions/3.3.0/include/ruby-3.3.0/ruby/backward -I/Users/seunghoon/.rbenv/versions/3.3.0/include/ruby-3.3.0 -I. -I/Users/seunghoon/Desktop/Bolzap/BoltZap-App/vendor/bundle/ruby/3.3.0/gems/prism-1.7.0/include -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE -D_DARWIN_UNLIMITED_SELECT -D_REENTRANT   -fdeclspec -O3 -fno-fast-math -ggdb3 -Wall -Wextra -Wextra-tokens -Wdeprecated-declarations -Wdivision-by-zero -Wdiv-by-zero -Wimplicit-function-declaration -Wimplicit-int -Wpointer-arith -Wshorten-64-to-32 -Wwrite-strings -Wold-style-definition -Wmissing-noreturn -Wno-cast-function-type -Wno-constant-logical-operand -Wno-long-long -Wno-missing-field-initializers -Wno-overlength-strings -Wno-parentheses-equality -Wno-self-assign -Wno-tautological-compare -Wno-unused-parameter -Wno-unused-value -Wunused-variable -Wmisleading-indentation -Wundef -fno-common -pipe -arch arm64  -c conftest.c"
+conftest.c:3:10: fatal error: 'prism/extension.h' file not found
+    3 | #include <prism/extension.h>
+      |          ^~~~~~~~~~~~~~~~~~~
+1 error generated.
+checked program was:
+/* begin */
+1: #include "ruby.h"
+2: 
+3: #include <prism/extension.h>
+/* end */
+
+DYLD_LIBRARY_PATH=.:/Users/seunghoon/.rbenv/versions/3.3.0/lib "clang -I/Users/seunghoon/.rbenv/versions/3.3.0/include/ruby-3.3.0/arm64-darwin25 -I/Users/seunghoon/.rbenv/versions/3.3.0/include/ruby-3.3.0/ruby/backward -I/Users/seunghoon/.rbenv/versions/3.3.0/include/ruby-3.3.0 -I. -I/Users/seunghoon/Desktop/Bolzap/BoltZap-App/vendor/bundle/ruby/3.3.0/gems/prism-1.7.0/include -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE -D_DARWIN_UNLIMITED_SELECT -D_REENTRANT   -fdeclspec -O3 -fno-fast-math -ggdb3 -Wall -Wextra -Wextra-tokens -Wdeprecated-declarations -Wdivision-by-zero -Wdiv-by-zero -Wimplicit-function-declaration -Wimplicit-int -Wpointer-arith -Wshorten-64-to-32 -Wwrite-strings -Wold-style-definition -Wmissing-noreturn -Wno-cast-function-type -Wno-constant-logical-operand -Wno-long-long -Wno-missing-field-initializers -Wno-overlength-strings -Wno-parentheses-equality -Wno-self-assign -Wno-tautological-compare -Wno-unused-parameter -Wno-unused-value -Wunused-variable -Wmisleading-indentation -Wundef -fno-common -pipe -arch arm64 -I/Users/seunghoon/Desktop/Bolzap/BoltZap-App/vendor/bundle/ruby/3.3.0/gems/prism-1.7.0/ext -c conftest.c"
+checked program was:
+/* begin */
+1: #include "ruby.h"
+2: 
+3: #include <prism/extension.h>
+/* end */
+
+--------------------
+
+append_cflags: checking for whether -fvisibility=hidden is accepted as CFLAGS... -------------------- yes
+
+DYLD_LIBRARY_PATH=.:/Users/seunghoon/.rbenv/versions/3.3.0/lib "clang -I/Users/seunghoon/.rbenv/versions/3.3.0/include/ruby-3.3.0/arm64-darwin25 -I/Users/seunghoon/.rbenv/versions/3.3.0/include/ruby-3.3.0/ruby/backward -I/Users/seunghoon/.rbenv/versions/3.3.0/include/ruby-3.3.0 -I. -I/Users/seunghoon/Desktop/Bolzap/BoltZap-App/vendor/bundle/ruby/3.3.0/gems/prism-1.7.0/include -I/Users/seunghoon/Desktop/Bolzap/BoltZap-App/vendor/bundle/ruby/3.3.0/gems/prism-1.7.0/ext -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE -D_DARWIN_UNLIMITED_SELECT -D_REENTRANT   -fdeclspec -O3 -fno-fast-math -ggdb3 -Wall -Wextra -Wextra-tokens -Wdeprecated-declarations -Wdivision-by-zero -Wdiv-by-zero -Wimplicit-function-declaration -Wimplicit-int -Wpointer-arith -Wshorten-64-to-32 -Wwrite-strings -Wold-style-definition -Wmissing-noreturn -Wno-cast-function-type -Wno-constant-logical-operand -Wno-long-long -Wno-missing-field-initializers -Wno-overlength-strings -Wno-parentheses-equality -Wno-self-assign -Wno-tautological-compare -Wno-unused-parameter -Wno-unused-value -Wunused-variable -Wmisleading-indentation -Wundef -fno-common -pipe -arch arm64 -fvisibility=hidden -Werror -c conftest.c"
+checked program was:
+/* begin */
+1: #include "ruby.h"
+2: 
+3: int main(int argc, char **argv)
+4: {
+5:   return !!argv[argc];
+6: }
+/* end */
+
+--------------------
+

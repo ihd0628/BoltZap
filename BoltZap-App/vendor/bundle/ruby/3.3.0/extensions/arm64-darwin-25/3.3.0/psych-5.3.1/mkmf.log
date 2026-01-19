@@ -1,0 +1,41 @@
+pkg_config: checking for pkg-config for yaml-0.1... -------------------- ["-I/opt/homebrew/Cellar/libyaml/0.2.5/include ", "-L/opt/homebrew/Cellar/libyaml/0.2.5/lib", "-lyaml"]
+
+DYLD_LIBRARY_PATH=.:/Users/seunghoon/.rbenv/versions/3.3.0/lib pkg-config --exists yaml-0.1
+DYLD_LIBRARY_PATH=.:/Users/seunghoon/.rbenv/versions/3.3.0/lib pkg-config --libs yaml-0.1 |
+=> "-L/opt/homebrew/Cellar/libyaml/0.2.5/lib -lyaml\n"
+DYLD_LIBRARY_PATH=.:/Users/seunghoon/.rbenv/versions/3.3.0/lib "clang -o conftest -I/Users/seunghoon/.rbenv/versions/3.3.0/include/ruby-3.3.0/arm64-darwin25 -I/Users/seunghoon/.rbenv/versions/3.3.0/include/ruby-3.3.0/ruby/backward -I/Users/seunghoon/.rbenv/versions/3.3.0/include/ruby-3.3.0 -I. -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE -D_DARWIN_UNLIMITED_SELECT -D_REENTRANT   -fdeclspec -O3 -fno-fast-math -ggdb3 -Wall -Wextra -Wextra-tokens -Wdeprecated-declarations -Wdivision-by-zero -Wdiv-by-zero -Wimplicit-function-declaration -Wimplicit-int -Wpointer-arith -Wshorten-64-to-32 -Wwrite-strings -Wold-style-definition -Wmissing-noreturn -Wno-cast-function-type -Wno-constant-logical-operand -Wno-long-long -Wno-missing-field-initializers -Wno-overlength-strings -Wno-parentheses-equality -Wno-self-assign -Wno-tautological-compare -Wno-unused-parameter -Wno-unused-value -Wunused-variable -Wmisleading-indentation -Wundef -fno-common -pipe conftest.c  -L. -L/Users/seunghoon/.rbenv/versions/3.3.0/lib -L. -fstack-protector-strong  -arch arm64   -lruby.3.3  -lpthread  "
+checked program was:
+/* begin */
+1: #include "ruby.h"
+2: 
+3: int main(int argc, char **argv)
+4: {
+5:   return !!argv[argc];
+6: }
+/* end */
+
+DYLD_LIBRARY_PATH=.:/Users/seunghoon/.rbenv/versions/3.3.0/lib "clang -o conftest -I/Users/seunghoon/.rbenv/versions/3.3.0/include/ruby-3.3.0/arm64-darwin25 -I/Users/seunghoon/.rbenv/versions/3.3.0/include/ruby-3.3.0/ruby/backward -I/Users/seunghoon/.rbenv/versions/3.3.0/include/ruby-3.3.0 -I. -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE -D_DARWIN_UNLIMITED_SELECT -D_REENTRANT   -fdeclspec -O3 -fno-fast-math -ggdb3 -Wall -Wextra -Wextra-tokens -Wdeprecated-declarations -Wdivision-by-zero -Wdiv-by-zero -Wimplicit-function-declaration -Wimplicit-int -Wpointer-arith -Wshorten-64-to-32 -Wwrite-strings -Wold-style-definition -Wmissing-noreturn -Wno-cast-function-type -Wno-constant-logical-operand -Wno-long-long -Wno-missing-field-initializers -Wno-overlength-strings -Wno-parentheses-equality -Wno-self-assign -Wno-tautological-compare -Wno-unused-parameter -Wno-unused-value -Wunused-variable -Wmisleading-indentation -Wundef -fno-common -pipe conftest.c  -L. -L/Users/seunghoon/.rbenv/versions/3.3.0/lib -L. -fstack-protector-strong  -arch arm64   -lruby.3.3 -L/opt/homebrew/Cellar/libyaml/0.2.5/lib -lyaml -lpthread  "
+checked program was:
+/* begin */
+1: #include "ruby.h"
+2: 
+3: int main(int argc, char **argv)
+4: {
+5:   return !!argv[argc];
+6: }
+/* end */
+
+DYLD_LIBRARY_PATH=.:/Users/seunghoon/.rbenv/versions/3.3.0/lib pkg-config --cflags-only-I yaml-0.1 |
+=> "-I/opt/homebrew/Cellar/libyaml/0.2.5/include\n"
+DYLD_LIBRARY_PATH=.:/Users/seunghoon/.rbenv/versions/3.3.0/lib pkg-config --cflags-only-other yaml-0.1 |
+=> "\n"
+DYLD_LIBRARY_PATH=.:/Users/seunghoon/.rbenv/versions/3.3.0/lib pkg-config --libs-only-l yaml-0.1 |
+=> "-lyaml\n"
+package configuration for yaml-0.1
+incflags: -I/opt/homebrew/Cellar/libyaml/0.2.5/include
+cflags: 
+ldflags: -L/opt/homebrew/Cellar/libyaml/0.2.5/lib
+libs: -lyaml
+
+--------------------
+
