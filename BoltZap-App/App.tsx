@@ -38,9 +38,9 @@ const App = (): React.JSX.Element => {
 
   // Channel State
   const [peerNodeId, setPeerNodeId] = useState<string>(
-    '038863cf8ab91046230f561cd5b386cbff8309fa02e3f0c3ed161a3aeb64a643b9',
-  ); // Default: aranguren.org (Top Testnet Node)
-  const [peerAddress, setPeerAddress] = useState<string>('203.132.94.196:9735');
+    '03864ef025fde8fb587d989186ce6a4a186895ee44a926bfc370e2c366597a3f8f',
+  ); // Default: ACINQ (Mainnet)
+  const [peerAddress, setPeerAddress] = useState<string>('3.33.236.230:9735');
   const [channelAmount, setChannelAmount] = useState<string>('20000');
   const [channels, setChannels] = useState<ChannelDetails[]>([]);
   const [invoiceToSend, setInvoiceToSend] = useState<string>('');
@@ -73,7 +73,7 @@ const App = (): React.JSX.Element => {
         '127.0.0.1',
         Math.floor(Math.random() * (60000 - 10000 + 1) + 10000),
       );
-      await config.create(path, logPath, 'testnet', [listeningAddr]); // TESTNET
+      await config.create(path, logPath, 'bitcoin', [listeningAddr]); // MAINNET
 
       // Esplora를 사용하여 블록체인 데이터 동기화
       const builder = new Builder();
@@ -108,9 +108,9 @@ const App = (): React.JSX.Element => {
       await builder.setEntropyBip39Mnemonic(storedMnemonic);
 
       // builder.setNetwork/StoragePath는 Config에서 이미 설정됨
-      await builder.setEsploraServer('https://mempool.space/api'); // TESTNET
+      await builder.setEsploraServer('http://localhost:3000/esplora'); // Local Proxy
       await builder.setGossipSourceRgs(
-        'https://rapidsync.lightningdevkit.org/snapshot', // TESTNET
+        'https://rapidsync.lightningdevkit.org/bitcoin/snapshot', // MAINNET
       );
 
       // LSP 설정 (Breez) - 자동 채널 관리 및 인바운드 용량 제공
@@ -182,7 +182,7 @@ const App = (): React.JSX.Element => {
             syncError.message.includes('WalletOperation') &&
             attempt < MAX_RETRIES
           ) {
-            addLog(`⏳ 동기화 재시도 ${attempt}/${MAX_RETRIES} (30초 대기)...`);
+            addLog(`⏳ 동기화 재시도 ${attempt}/${MAX_RETRIES} (60초 대기)...`);
             await new Promise(resolve => setTimeout(resolve, 60000));
           } else {
             throw syncError;
