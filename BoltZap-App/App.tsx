@@ -3,21 +3,13 @@ import 'react-native-get-random-values';
 import { Buffer } from 'buffer';
 global.Buffer = Buffer;
 
-import React, { useState } from 'react';
-import { StatusBar } from 'react-native';
-import styled from 'styled-components/native';
+import { NavigationContainer } from '@react-navigation/native';
+import React from 'react';
+import { StatusBar, Text, View } from 'react-native';
 
-import {
-  StatusBadge,
-  StatusDot,
-  StatusText,
-  TabBar,
-  TabIcon,
-  TabItem,
-  TabLabel,
-} from './src/components';
-import { useNode } from './src/hooks/useNode';
-// Screens
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+
+import { NodeProvider, useNodeContext } from './src/context/NodeContext';
 import { HomeScreen } from './src/screens/home/HomeScreen';
 import { NodeScreen } from './src/screens/node/NodeScreen';
 import { ReceiveScreen } from './src/screens/receive/ReceiveScreen';
@@ -25,107 +17,222 @@ import { SendScreen } from './src/screens/send/SendScreen';
 import { theme } from './src/theme';
 
 // ============================================
-// 로컬 스타일 (App 전용)
+// 탭 네비게이터 타입 정의
 // ============================================
-const Container = styled.SafeAreaView`
-  flex: 1;
-  background-color: ${theme.colors.background.main};
-`;
+export type RootTabParamList = {
+  Home: undefined;
+  Send: undefined;
+  Receive: undefined;
+  Node: undefined;
+};
 
-const Header = styled.View`
-  padding: ${theme.gap.g16}px ${theme.gap.g20}px;
-  background-color: ${theme.colors.background.main};
-  border-bottom-width: 1px;
-  border-bottom-color: ${theme.colors.border};
-`;
-
-const HeaderContent = styled.View`
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-`;
-
-const Title = styled.Text`
-  font-size: ${theme.font.size.s24}px;
-  font-weight: ${theme.font.weight.bold};
-  color: ${theme.colors.text.white};
-`;
+const Tab = createBottomTabNavigator<RootTabParamList>();
 
 // ============================================
-// 탭 타입
+// 탭 아이콘 컴포넌트
 // ============================================
-type TabType = 'home' | 'send' | 'receive' | 'node';
+const TabIcon = ({
+  emoji,
+  focused,
+}: {
+  emoji: string;
+  focused: boolean;
+}): React.JSX.Element => (
+  <Text style={{ fontSize: 24, opacity: focused ? 1 : 0.5 }}>{emoji}</Text>
+);
 
 // ============================================
-// App 컴포넌트
+// 화면 래퍼 컴포넌트 (Context 연결)
 // ============================================
-const App = (): React.JSX.Element => {
-  const [activeTab, setActiveTab] = useState<TabType>('home');
-  const [state, actions] = useNode();
+const HomeScreenWrapper = (): React.JSX.Element => {
+  const { state } = useNodeContext();
+  return <HomeScreen state={state} />;
+};
 
+const SendScreenWrapper = (): React.JSX.Element => {
+  const { state, actions } = useNodeContext();
+  return <SendScreen state={state} actions={actions} />;
+};
+
+const ReceiveScreenWrapper = (): React.JSX.Element => {
+  const { state, actions } = useNodeContext();
+  return <ReceiveScreen state={state} actions={actions} />;
+};
+
+const NodeScreenWrapper = (): React.JSX.Element => {
+  const { state, actions } = useNodeContext();
+  return <NodeScreen state={state} actions={actions} />;
+};
+
+// ============================================
+// 헤더 컴포넌트
+// ============================================
+const Header = (): React.JSX.Element => {
+  const { state } = useNodeContext();
   const { status } = state;
 
   return (
-    <Container>
+    <View
+      style={{
+        paddingHorizontal: 20,
+        paddingVertical: 16,
+        backgroundColor: theme.colors.background.main,
+        borderBottomWidth: 1,
+        borderBottomColor: theme.colors.border,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}
+    >
+      <Text
+        style={{
+          fontSize: 24,
+          fontWeight: 'bold',
+          color: theme.colors.text.white,
+        }}
+      >
+        BoltZap ⚡
+      </Text>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingHorizontal: 10,
+          paddingVertical: 4,
+          borderRadius: 16,
+          backgroundColor:
+            status === 'connected'
+              ? 'rgba(48, 209, 88, 0.15)'
+              : 'rgba(142, 142, 147, 0.15)',
+        }}
+      >
+        <View
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: 4,
+            marginRight: 8,
+            backgroundColor:
+              status === 'connected'
+                ? theme.colors.status.success
+                : theme.colors.text.secondary,
+          }}
+        />
+        <Text
+          style={{
+            fontSize: 12,
+            fontWeight: '500',
+            color:
+              status === 'connected'
+                ? theme.colors.status.success
+                : theme.colors.text.secondary,
+          }}
+        >
+          {status === 'connected' ? 'ON' : 'OFF'}
+        </Text>
+      </View>
+    </View>
+  );
+};
+
+// ============================================
+// 메인 앱 컴포넌트
+// ============================================
+const AppContent = (): React.JSX.Element => {
+  return (
+    <>
       <StatusBar barStyle="light-content" backgroundColor="#0D0D0D" />
+      <Header />
+      <Tab.Navigator
+        screenOptions={{
+          headerShown: false,
+          tabBarStyle: {
+            backgroundColor: theme.colors.background.tabBar,
+            borderTopColor: theme.colors.border,
+            borderTopWidth: 1,
+            paddingBottom: 8,
+          },
+          tabBarActiveTintColor: theme.colors.tab.active,
+          tabBarInactiveTintColor: theme.colors.tab.inactive,
+          tabBarLabelStyle: {
+            fontSize: 10,
+            fontWeight: '500',
+          },
+        }}
+      >
+        <Tab.Screen
+          name="Home"
+          component={HomeScreenWrapper}
+          options={{
+            tabBarLabel: '홈',
+            tabBarIcon: ({ focused }) => (
+              <TabIcon emoji="🏠" focused={focused} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Send"
+          component={SendScreenWrapper}
+          options={{
+            tabBarLabel: '보내기',
+            tabBarIcon: ({ focused }) => (
+              <TabIcon emoji="📤" focused={focused} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Receive"
+          component={ReceiveScreenWrapper}
+          options={{
+            tabBarLabel: '받기',
+            tabBarIcon: ({ focused }) => (
+              <TabIcon emoji="📥" focused={focused} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Node"
+          component={NodeScreenWrapper}
+          options={{
+            tabBarLabel: '노드',
+            tabBarIcon: ({ focused }) => (
+              <TabIcon emoji="⚙️" focused={focused} />
+            ),
+          }}
+        />
+      </Tab.Navigator>
+    </>
+  );
+};
 
-      {/* 헤더 */}
-      <Header>
-        <HeaderContent>
-          <Title>BoltZap ⚡</Title>
-          <StatusBadge variant={status === 'connected' ? 'success' : 'default'}>
-            <StatusDot
-              variant={status === 'connected' ? 'success' : 'default'}
-            />
-            <StatusText
-              variant={status === 'connected' ? 'success' : 'default'}
-            >
-              {status === 'connected' ? 'ON' : 'OFF'}
-            </StatusText>
-          </StatusBadge>
-        </HeaderContent>
-      </Header>
-
-      {/* 탭 컨텐츠 */}
-      {activeTab === 'home' && <HomeScreen state={state} />}
-      {activeTab === 'send' && <SendScreen state={state} actions={actions} />}
-      {activeTab === 'receive' && (
-        <ReceiveScreen state={state} actions={actions} />
-      )}
-      {activeTab === 'node' && <NodeScreen state={state} actions={actions} />}
-
-      {/* 탭바 */}
-      <TabBar>
-        <TabItem
-          active={activeTab === 'home'}
-          onPress={() => setActiveTab('home')}
-        >
-          <TabIcon active={activeTab === 'home'}>🏠</TabIcon>
-          <TabLabel active={activeTab === 'home'}>홈</TabLabel>
-        </TabItem>
-        <TabItem
-          active={activeTab === 'send'}
-          onPress={() => setActiveTab('send')}
-        >
-          <TabIcon active={activeTab === 'send'}>📤</TabIcon>
-          <TabLabel active={activeTab === 'send'}>보내기</TabLabel>
-        </TabItem>
-        <TabItem
-          active={activeTab === 'receive'}
-          onPress={() => setActiveTab('receive')}
-        >
-          <TabIcon active={activeTab === 'receive'}>📥</TabIcon>
-          <TabLabel active={activeTab === 'receive'}>받기</TabLabel>
-        </TabItem>
-        <TabItem
-          active={activeTab === 'node'}
-          onPress={() => setActiveTab('node')}
-        >
-          <TabIcon active={activeTab === 'node'}>⚙️</TabIcon>
-          <TabLabel active={activeTab === 'node'}>노드</TabLabel>
-        </TabItem>
-      </TabBar>
-    </Container>
+// ============================================
+// 앱 엔트리포인트
+// ============================================
+const App = (): React.JSX.Element => {
+  return (
+    <NavigationContainer
+      theme={{
+        dark: true,
+        colors: {
+          primary: theme.colors.accent,
+          background: theme.colors.background.main,
+          card: theme.colors.background.card,
+          text: theme.colors.text.white,
+          border: theme.colors.border,
+          notification: theme.colors.accent,
+        },
+        fonts: {
+          regular: { fontFamily: 'System', fontWeight: '400' },
+          medium: { fontFamily: 'System', fontWeight: '500' },
+          bold: { fontFamily: 'System', fontWeight: '700' },
+          heavy: { fontFamily: 'System', fontWeight: '800' },
+        },
+      }}
+    >
+      <NodeProvider>
+        <AppContent />
+      </NodeProvider>
+    </NavigationContainer>
   );
 };
 

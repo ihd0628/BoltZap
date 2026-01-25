@@ -15,6 +15,8 @@
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-clipboard/clipboard": "^1.16.3",
     "@react-native/new-app-screen": "0.83.1",
+    "@react-navigation/bottom-tabs": "^7.10.1",
+    "@react-navigation/native": "^7.1.28",
     "bip39": "^3.1.0",
     "buffer": "^6.0.3",
     "react": "19.2.0",
@@ -23,7 +25,8 @@
     "react-native-fs": "^2.20.0",
     "react-native-get-random-values": "^2.0.0",
     "react-native-keychain": "^10.0.0",
-    "react-native-safe-area-context": "^5.5.2",
+    "react-native-safe-area-context": "^5.6.2",
+    "react-native-screens": "^4.20.0",
     "styled-components": "^6.1.19"
   },
   "devDependencies": {
