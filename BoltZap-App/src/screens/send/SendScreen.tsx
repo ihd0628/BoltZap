@@ -26,7 +26,7 @@ export const SendScreen = ({
   actions,
 }: SendScreenProps): React.JSX.Element => {
   const { invoiceToSend } = state;
-  const { isRunning, setInvoiceToSend, sendPayment } = actions;
+  const { isConnected, setInvoiceToSend, sendPaymentAction } = actions;
 
   return (
     <S.Container>
@@ -46,8 +46,8 @@ export const SendScreen = ({
         />
 
         <Button
-          onPress={sendPayment}
-          disabled={!isRunning || !invoiceToSend.trim()}
+          onPress={sendPaymentAction}
+          disabled={!isConnected || !invoiceToSend.trim()}
           variant="accent"
           fullWidth
         >
@@ -55,10 +55,10 @@ export const SendScreen = ({
         </Button>
       </Card>
 
-      {!isRunning && (
+      {!isConnected && (
         <EmptyState>
           <EmptyIcon>⚠️</EmptyIcon>
-          <EmptyText>노드를 먼저 시작해주세요</EmptyText>
+          <EmptyText>먼저 연결해주세요</EmptyText>
         </EmptyState>
       )}
     </S.Container>

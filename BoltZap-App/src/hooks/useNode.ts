@@ -1,122 +1,144 @@
 import 'react-native-get-random-values';
 
+import {
+  addEventListener,
+  connect,
+  defaultConfig,
+  type EventListener,
+  getInfo,
+  LiquidNetwork,
+  PaymentMethod,
+  prepareReceivePayment,
+  prepareSendPayment,
+  ReceiveAmountVariant,
+  receivePayment,
+  sendPayment,
+} from '@breeztech/react-native-breez-sdk-liquid';
 import Clipboard from '@react-native-clipboard/clipboard';
 import * as bip39 from 'bip39';
-import { Builder, Config, type Node } from 'ldk-node-rn';
-import {
-  type Address,
-  type ChannelDetails,
-  NetAddress,
-} from 'ldk-node-rn/lib/classes/Bindings';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
-import RNFS from 'react-native-fs';
 import * as Keychain from 'react-native-keychain';
 
 const KEYCHAIN_SERVICE = 'boltzap_wallet';
 
-// Node instance (module-level)
-let runningNode: Node | null = null;
+// TODO: 실제 API 키로 교체 필요!
+// https://breez.technology/request-api-key 에서 요청
+const BREEZ_API_KEY =
+  '***REMOVED***';
 
-export type NodeStatus = 'stopped' | 'starting' | 'running' | 'error';
+export type NodeStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
 
 export interface NodeState {
-  nodeId: string;
   status: NodeStatus;
-  isSyncing: boolean;
-  balance: number;
-  spendableBalance: number;
   mnemonic: string;
   showMnemonic: boolean;
-  onChainAddress: string;
-  channels: ChannelDetails[];
-  logs: string[];
+  balance: number;
+  pendingBalance: number;
   invoice: string;
   invoiceAmount: string;
   invoiceToSend: string;
-  peerNodeId: string;
-  peerAddress: string;
-  channelAmount: string;
+  logs: string[];
 }
 
 export interface NodeActions {
   initNode: () => Promise<void>;
-  syncNode: () => Promise<void>;
-  getAddress: () => Promise<void>;
-  connectPeer: () => Promise<void>;
-  openChannel: () => Promise<void>;
-  receivePayment: () => Promise<void>;
-  sendPayment: () => Promise<void>;
+  receivePaymentAction: () => Promise<void>;
+  sendPaymentAction: () => Promise<void>;
   copyInvoice: () => void;
   setShowMnemonic: (show: boolean) => void;
   setInvoiceAmount: (amount: string) => void;
   setInvoiceToSend: (invoice: string) => void;
-  setPeerNodeId: (nodeId: string) => void;
-  setPeerAddress: (address: string) => void;
-  setChannelAmount: (amount: string) => void;
-  isRunning: boolean;
+  refreshBalance: () => Promise<void>;
+  isConnected: boolean;
 }
+
+// 연결 상태 추적
+let isSDKConnected = false;
 
 export function useNode(): [NodeState, NodeActions] {
   // UI State
   const [logs, setLogs] = useState<string[]>([]);
 
   // Node State
-  const [nodeId, setNodeId] = useState<string>('');
-  const [status, setStatus] = useState<NodeStatus>('stopped');
-  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [status, setStatus] = useState<NodeStatus>('disconnected');
 
   // Wallet State
-  const [onChainAddress, setOnChainAddress] = useState<string>('');
   const [balance, setBalance] = useState<number>(0);
-  const [spendableBalance, setSpendableBalance] = useState<number>(0);
+  const [pendingBalance, setPendingBalance] = useState<number>(0);
   const [mnemonic, setMnemonic] = useState<string>('');
   const [showMnemonic, setShowMnemonic] = useState<boolean>(false);
-
-  // Channel State
-  const [peerNodeId, setPeerNodeId] = useState<string>(
-    '03864ef025fde8fb587d989186ce6a4a186895ee44a926bfc370e2c366597a3f8f',
-  );
-  const [peerAddress, setPeerAddress] = useState<string>('3.33.236.230:9735');
-  const [channelAmount, setChannelAmount] = useState<string>('20000');
-  const [channels, setChannels] = useState<ChannelDetails[]>([]);
 
   // Payment State
   const [invoice, setInvoice] = useState<string>('');
   const [invoiceAmount, setInvoiceAmount] = useState<string>('1000');
   const [invoiceToSend, setInvoiceToSend] = useState<string>('');
 
-  const isRunning = status === 'running';
+  const isConnected = status === 'connected';
+  const listenerIdRef = useRef<string | null>(null);
 
   const addLog = useCallback((msg: string) => {
     console.log(msg);
     setLogs(prev => [msg, ...prev.slice(0, 49)]);
   }, []);
 
+  // 잔액 조회
+  const refreshBalance = useCallback(async () => {
+    if (!isSDKConnected) return;
+    try {
+      const info = await getInfo();
+      setBalance(Number(info.walletInfo.balanceSat));
+      setPendingBalance(
+        Number(
+          info.walletInfo.pendingReceiveSat + info.walletInfo.pendingSendSat,
+        ),
+      );
+      addLog(`💰 잔액: ${info.walletInfo.balanceSat} sats`);
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        addLog(`❌ 잔액 조회 실패: ${e.message}`);
+      }
+    }
+  }, [addLog]);
+
+  // SDK 이벤트 리스너
+  useEffect(() => {
+    if (status !== 'connected') return;
+
+    const setupListener = async () => {
+      try {
+        const listener: EventListener = event => {
+          addLog(`📡 이벤트: ${event.type}`);
+
+          // 결제 완료 시 잔액 갱신
+          if (
+            event.type === 'paymentSucceeded' ||
+            event.type === 'paymentFailed'
+          ) {
+            refreshBalance();
+          }
+        };
+
+        const listenerId = await addEventListener(listener);
+        listenerIdRef.current = listenerId;
+      } catch (e) {
+        console.log('Event listener setup failed:', e);
+      }
+    };
+
+    setupListener();
+  }, [status, addLog, refreshBalance]);
+
+  // 노드 초기화 및 연결
   const initNode = useCallback(async () => {
     try {
-      if (runningNode) {
-        addLog('⚠️ 이미 노드가 실행 중입니다.');
+      if (isSDKConnected) {
+        addLog('⚠️ 이미 연결되어 있습니다.');
         return;
       }
 
-      addLog('🚀 LDK 노드 초기화 중...');
-      setStatus('starting');
-
-      const path = `${RNFS.DocumentDirectoryPath}/ldk_node_data`;
-      await RNFS.mkdir(path);
-      const logPath = `${RNFS.DocumentDirectoryPath}/ldk_node_logs`;
-      await RNFS.mkdir(logPath);
-
-      const config = new Config();
-      const listeningAddr = new NetAddress(
-        '127.0.0.1',
-        Math.floor(Math.random() * (60000 - 10000 + 1) + 10000),
-      );
-      await config.create(path, logPath, 'bitcoin', [listeningAddr]);
-
-      const builder = new Builder();
-      await builder.fromConfig(config);
+      addLog('🚀 Breez SDK 연결 중...');
+      setStatus('connecting');
 
       // 니모닉 로드 또는 생성
       let storedMnemonic: string | null = null;
@@ -143,218 +165,104 @@ export function useNode(): [NodeState, NodeActions] {
         addLog('🔐 기존 시드 로드 완료');
       }
       setMnemonic(storedMnemonic);
-      await builder.setEntropyBip39Mnemonic(storedMnemonic);
 
-      await builder.setEsploraServer('http://localhost:3000/esplora');
-      await builder.setGossipSourceRgs(
-        'https://rapidsync.lightningdevkit.org/bitcoin/snapshot',
-      );
+      // Breez SDK 설정
+      const config = await defaultConfig(LiquidNetwork.MAINNET, BREEZ_API_KEY);
+      addLog(`📁 작업 디렉토리: ${config.workingDir}`);
 
-      const node = await builder.build();
-      addLog('✅ 노드 빌드 완료');
+      // 연결
+      await connect({ mnemonic: storedMnemonic, config });
+      isSDKConnected = true;
 
-      // 노드 시작 (재시도 로직)
-      const MAX_RETRIES = 3;
-      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-        try {
-          addLog(`🚀 노드 시작 시도 ${attempt}/${MAX_RETRIES}...`);
-          await node.start();
-          break;
-        } catch (startError: unknown) {
-          if (
-            startError instanceof Error &&
-            startError.message.includes('FeerateEstimation') &&
-            attempt < MAX_RETRIES
-          ) {
-            addLog('⏳ 수수료 정보 조회 실패, 60초 후 재시도...');
-            await new Promise(resolve => setTimeout(resolve, 60000));
-          } else {
-            throw startError;
-          }
-        }
-      }
-      runningNode = node;
-      setStatus('running');
-      addLog('⚡ 노드 시작됨!');
+      setStatus('connected');
+      addLog('⚡ Breez SDK 연결 완료!');
 
-      const info = await node.nodeId();
-      setNodeId(info.keyHex);
-      addLog(`🆔 노드 ID: ${info.keyHex.substring(0, 20)}...`);
-
-      // 자동 동기화
-      await syncNodeInternal();
+      // 잔액 조회
+      await refreshBalance();
     } catch (e: unknown) {
       setStatus('error');
       if (e instanceof Error) {
-        addLog(`❌ 오류: ${e.message}`);
-        Alert.alert('오류', e.message);
+        addLog(`❌ 연결 오류: ${e.message}`);
+        Alert.alert('연결 오류', e.message);
       }
     }
-  }, [addLog]);
+  }, [addLog, refreshBalance]);
 
-  const syncNodeInternal = useCallback(async () => {
-    if (!runningNode) return;
-    try {
-      setIsSyncing(true);
-      addLog('🔄 동기화 중...');
-
-      const MAX_RETRIES = 3;
-      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-        try {
-          await runningNode.syncWallets();
-          break;
-        } catch (syncError: unknown) {
-          if (
-            syncError instanceof Error &&
-            syncError.message.includes('WalletOperation') &&
-            attempt < MAX_RETRIES
-          ) {
-            addLog(`⏳ 재시도 ${attempt}/${MAX_RETRIES}...`);
-            await new Promise(resolve => setTimeout(resolve, 60000));
-          } else {
-            throw syncError;
-          }
-        }
-      }
-
-      const total = await runningNode.totalOnchainBalanceSats();
-      const spendable = await runningNode.spendableOnchainBalanceSats();
-      setBalance(Number(total));
-      setSpendableBalance(Number(spendable));
-
-      const chs = await runningNode.listChannels();
-      setChannels(chs);
-
-      addLog(`✅ 동기화 완료 (잔액: ${spendable} sats)`);
-    } catch (e: unknown) {
-      if (e instanceof Error) {
-        addLog(`❌ 동기화 오류: ${e.message}`);
-      }
-    } finally {
-      setIsSyncing(false);
-    }
-  }, [addLog]);
-
-  const syncNode = useCallback(async () => {
-    if (!runningNode || isSyncing) return;
-    await syncNodeInternal();
-  }, [isSyncing, syncNodeInternal]);
-
-  const getAddress = useCallback(async () => {
-    if (!runningNode) {
-      Alert.alert('오류', '먼저 노드를 시작해주세요.');
+  // 결제 받기 (Invoice 생성)
+  const receivePaymentAction = useCallback(async () => {
+    if (!isConnected) {
+      Alert.alert('오류', '먼저 연결해주세요.');
       return;
     }
-    try {
-      const addrObj: Address = await runningNode.newOnchainAddress();
-      const addrStr = addrObj.addressHex || addrObj.toString();
-      setOnChainAddress(addrStr);
-      Clipboard.setString(addrStr);
-      addLog(`📬 새 주소 생성됨`);
-      Alert.alert('주소 복사됨', '클립보드에 복사되었습니다.');
-    } catch (e: unknown) {
-      if (e instanceof Error) {
-        addLog(`❌ 주소 생성 실패: ${e.message}`);
-      }
-    }
-  }, [addLog]);
 
-  const connectPeer = useCallback(async () => {
-    if (!runningNode) return;
-    if (!peerNodeId || !peerAddress) {
-      Alert.alert('입력 오류', 'Node ID와 주소를 입력해주세요.');
-      return;
-    }
-    try {
-      addLog(`🔗 피어 연결 중...`);
-      const [ip, port] = peerAddress.split(':');
-      const netAddr = new NetAddress(ip, parseInt(port, 10));
-      await runningNode.connect(peerNodeId.trim(), netAddr, true);
-      addLog('✅ 피어 연결 성공!');
-      Alert.alert('성공', '피어와 연결되었습니다.');
-    } catch (e: unknown) {
-      if (e instanceof Error) {
-        addLog(`❌ 연결 실패: ${e.message}`);
-        Alert.alert('오류', e.message);
-      }
-    }
-  }, [addLog, peerNodeId, peerAddress]);
-
-  const openChannel = useCallback(async () => {
-    if (!runningNode) return;
-    try {
-      const amount = parseInt(channelAmount, 10);
-      if (isNaN(amount) || amount <= 0) {
-        Alert.alert('오류', '올바른 금액을 입력해주세요.');
-        return;
-      }
-      addLog(`📡 채널 오픈 중... (${amount} sats)`);
-      const [ip, port] = peerAddress.split(':');
-      const netAddr = new NetAddress(ip, parseInt(port, 10));
-
-      await runningNode.connectOpenChannel(
-        peerNodeId.trim(),
-        netAddr,
-        amount,
-        0,
-        undefined,
-        true,
-      );
-      addLog('✅ 채널 오픈 요청 완료!');
-      await syncNodeInternal();
-    } catch (e: unknown) {
-      if (e instanceof Error) {
-        addLog(`❌ 채널 오픈 실패: ${e.message}`);
-        Alert.alert('오류', e.message);
-      }
-    }
-  }, [addLog, channelAmount, peerAddress, peerNodeId, syncNodeInternal]);
-
-  const receivePayment = useCallback(async () => {
-    if (!runningNode) return;
     try {
       const amount = parseInt(invoiceAmount, 10);
       if (isNaN(amount) || amount <= 0) {
         Alert.alert('오류', '올바른 금액을 입력해주세요.');
         return;
       }
+
       addLog(`💸 ${amount} sats 인보이스 생성 중...`);
-      const amountMsat = amount * 1000;
-      const inv = await runningNode.receivePayment(
-        amountMsat,
-        'BoltZap Payment',
-        3600,
-      );
-      setInvoice(inv);
+
+      // 1. Prepare
+      const prepareRes = await prepareReceivePayment({
+        paymentMethod: PaymentMethod.BOLT11_INVOICE,
+        amount: {
+          type: ReceiveAmountVariant.BITCOIN,
+          payerAmountSat: amount,
+        },
+      });
+      addLog(`📋 수수료: ${prepareRes.feesSat} sats`);
+
+      // 2. Receive
+      const receiveRes = await receivePayment({ prepareResponse: prepareRes });
+      setInvoice(receiveRes.destination);
       addLog('🧾 인보이스 생성 완료!');
     } catch (e: unknown) {
       if (e instanceof Error) {
         addLog(`❌ 인보이스 오류: ${e.message}`);
+        Alert.alert('오류', e.message);
       }
     }
-  }, [addLog, invoiceAmount]);
+  }, [isConnected, invoiceAmount, addLog]);
 
-  const sendPayment = useCallback(async () => {
-    if (!runningNode) return;
+  // 결제 보내기
+  const sendPaymentAction = useCallback(async () => {
+    if (!isConnected) {
+      Alert.alert('오류', '먼저 연결해주세요.');
+      return;
+    }
+
     if (!invoiceToSend.trim()) {
       Alert.alert('오류', '인보이스를 입력해주세요.');
       return;
     }
+
     try {
       addLog('⚡ 결제 전송 중...');
-      const paymentHash = await runningNode.sendPayment(invoiceToSend.trim());
-      addLog(`✅ 결제 성공! Hash: ${paymentHash.field0.substring(0, 16)}...`);
+
+      // 1. Prepare
+      const prepareRes = await prepareSendPayment({
+        destination: invoiceToSend.trim(),
+      });
+      addLog(`📋 수수료: ${prepareRes.feesSat} sats`);
+
+      // 2. Send
+      await sendPayment({ prepareResponse: prepareRes });
+      addLog('✅ 결제 성공!');
       Alert.alert('성공', '결제가 완료되었습니다!');
+
       setInvoiceToSend('');
-      await syncNodeInternal();
+      await refreshBalance();
     } catch (e: unknown) {
       if (e instanceof Error) {
         addLog(`❌ 결제 실패: ${e.message}`);
         Alert.alert('오류', e.message);
       }
     }
-  }, [addLog, invoiceToSend, syncNodeInternal]);
+  }, [isConnected, invoiceToSend, addLog, refreshBalance]);
 
+  // 인보이스 복사
   const copyInvoice = useCallback(() => {
     if (invoice) {
       Clipboard.setString(invoice);
@@ -363,40 +271,27 @@ export function useNode(): [NodeState, NodeActions] {
   }, [invoice]);
 
   const state: NodeState = {
-    nodeId,
     status,
-    isSyncing,
-    balance,
-    spendableBalance,
     mnemonic,
     showMnemonic,
-    onChainAddress,
-    channels,
-    logs,
+    balance,
+    pendingBalance,
     invoice,
     invoiceAmount,
     invoiceToSend,
-    peerNodeId,
-    peerAddress,
-    channelAmount,
+    logs,
   };
 
   const actions: NodeActions = {
     initNode,
-    syncNode,
-    getAddress,
-    connectPeer,
-    openChannel,
-    receivePayment,
-    sendPayment,
+    receivePaymentAction,
+    sendPaymentAction,
     copyInvoice,
     setShowMnemonic,
     setInvoiceAmount,
     setInvoiceToSend,
-    setPeerNodeId,
-    setPeerAddress,
-    setChannelAmount,
-    isRunning,
+    refreshBalance,
+    isConnected,
   };
 
   return [state, actions];

@@ -7,23 +7,22 @@ import React, { useState } from 'react';
 import { StatusBar } from 'react-native';
 import styled from 'styled-components/native';
 
-import { theme } from './src/theme';
-import { useNode } from './src/hooks/useNode';
 import {
-  TabBar,
-  TabItem,
-  TabIcon,
-  TabLabel,
   StatusBadge,
   StatusDot,
   StatusText,
+  TabBar,
+  TabIcon,
+  TabItem,
+  TabLabel,
 } from './src/components';
-
+import { useNode } from './src/hooks/useNode';
 // Screens
 import { HomeScreen } from './src/screens/home/HomeScreen';
-import { SendScreen } from './src/screens/send/SendScreen';
-import { ReceiveScreen } from './src/screens/receive/ReceiveScreen';
 import { NodeScreen } from './src/screens/node/NodeScreen';
+import { ReceiveScreen } from './src/screens/receive/ReceiveScreen';
+import { SendScreen } from './src/screens/send/SendScreen';
+import { theme } from './src/theme';
 
 // ============================================
 // 로컬 스타일 (App 전용)
@@ -74,10 +73,14 @@ const App = (): React.JSX.Element => {
       <Header>
         <HeaderContent>
           <Title>BoltZap ⚡</Title>
-          <StatusBadge variant={status === 'running' ? 'success' : 'default'}>
-            <StatusDot variant={status === 'running' ? 'success' : 'default'} />
-            <StatusText variant={status === 'running' ? 'success' : 'default'}>
-              {status === 'running' ? 'ON' : 'OFF'}
+          <StatusBadge variant={status === 'connected' ? 'success' : 'default'}>
+            <StatusDot
+              variant={status === 'connected' ? 'success' : 'default'}
+            />
+            <StatusText
+              variant={status === 'connected' ? 'success' : 'default'}
+            >
+              {status === 'connected' ? 'ON' : 'OFF'}
             </StatusText>
           </StatusBadge>
         </HeaderContent>
