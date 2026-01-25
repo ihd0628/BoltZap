@@ -28,6 +28,7 @@ const KEYCHAIN_SERVICE = 'boltzap_wallet';
 const BREEZ_API_KEY = Config.BREEZ_API_KEY || '';
 
 export type NodeStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
+export type ReceiveMethod = 'lightning' | 'onchain';
 
 export interface NodeState {
   status: NodeStatus;
@@ -35,8 +36,12 @@ export interface NodeState {
   showMnemonic: boolean;
   balance: number;
   pendingBalance: number;
+  // 결제 받기 관련
   invoice: string;
   invoiceAmount: string;
+  bitcoinAddress: string;
+  receiveMethod: ReceiveMethod;
+  // 결제 보내기 관련
   invoiceToSend: string;
   logs: string[];
 }
@@ -44,11 +49,14 @@ export interface NodeState {
 export interface NodeActions {
   initNode: () => Promise<void>;
   receivePaymentAction: () => Promise<void>;
+  generateBitcoinAddress: () => Promise<void>;
   sendPaymentAction: () => Promise<void>;
   copyInvoice: () => void;
+  copyBitcoinAddress: () => void;
   setShowMnemonic: (show: boolean) => void;
   setInvoiceAmount: (amount: string) => void;
   setInvoiceToSend: (invoice: string) => void;
+  setReceiveMethod: (method: ReceiveMethod) => void;
   refreshBalance: () => Promise<void>;
   isConnected: boolean;
 }
@@ -69,9 +77,14 @@ export function useNode(): [NodeState, NodeActions] {
   const [mnemonic, setMnemonic] = useState<string>('');
   const [showMnemonic, setShowMnemonic] = useState<boolean>(false);
 
-  // Payment State
+  // Receive State
   const [invoice, setInvoice] = useState<string>('');
   const [invoiceAmount, setInvoiceAmount] = useState<string>('1000');
+  const [bitcoinAddress, setBitcoinAddress] = useState<string>('');
+  const [receiveMethod, setReceiveMethod] =
+    useState<ReceiveMethod>('lightning');
+
+  // Send State
   const [invoiceToSend, setInvoiceToSend] = useState<string>('');
 
   const isConnected = status === 'connected';
@@ -188,7 +201,7 @@ export function useNode(): [NodeState, NodeActions] {
     }
   }, [addLog, refreshBalance]);
 
-  // 결제 받기 (Invoice 생성)
+  // 라이트닝 인보이스 생성
   const receivePaymentAction = useCallback(async () => {
     if (!isConnected) {
       Alert.alert('오류', '먼저 연결해주세요.');
@@ -202,9 +215,8 @@ export function useNode(): [NodeState, NodeActions] {
         return;
       }
 
-      addLog(`💸 ${amount} sats 인보이스 생성 중...`);
+      addLog(`⚡ ${amount} sats 라이트닝 인보이스 생성 중...`);
 
-      // 1. Prepare
       const prepareRes = await prepareReceivePayment({
         paymentMethod: PaymentMethod.BOLT11_INVOICE,
         amount: {
@@ -214,13 +226,47 @@ export function useNode(): [NodeState, NodeActions] {
       });
       addLog(`📋 수수료: ${prepareRes.feesSat} sats`);
 
-      // 2. Receive
       const receiveRes = await receivePayment({ prepareResponse: prepareRes });
       setInvoice(receiveRes.destination);
-      addLog('🧾 인보이스 생성 완료!');
+      addLog('🧾 라이트닝 인보이스 생성 완료!');
     } catch (e: unknown) {
       if (e instanceof Error) {
         addLog(`❌ 인보이스 오류: ${e.message}`);
+        Alert.alert('오류', e.message);
+      }
+    }
+  }, [isConnected, invoiceAmount, addLog]);
+
+  // 비트코인 온체인 주소 생성
+  const generateBitcoinAddress = useCallback(async () => {
+    if (!isConnected) {
+      Alert.alert('오류', '먼저 연결해주세요.');
+      return;
+    }
+
+    try {
+      const amount = parseInt(invoiceAmount, 10);
+
+      addLog('🔗 비트코인 온체인 주소 생성 중...');
+
+      const prepareRes = await prepareReceivePayment({
+        paymentMethod: PaymentMethod.BITCOIN_ADDRESS,
+        amount:
+          amount > 0
+            ? {
+                type: ReceiveAmountVariant.BITCOIN,
+                payerAmountSat: amount,
+              }
+            : undefined,
+      });
+      addLog(`📋 예상 수수료: ${prepareRes.feesSat} sats`);
+
+      const receiveRes = await receivePayment({ prepareResponse: prepareRes });
+      setBitcoinAddress(receiveRes.destination);
+      addLog('🔗 비트코인 주소 생성 완료!');
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        addLog(`❌ 주소 생성 오류: ${e.message}`);
         Alert.alert('오류', e.message);
       }
     }
@@ -241,13 +287,11 @@ export function useNode(): [NodeState, NodeActions] {
     try {
       addLog('⚡ 결제 전송 중...');
 
-      // 1. Prepare
       const prepareRes = await prepareSendPayment({
         destination: invoiceToSend.trim(),
       });
       addLog(`📋 수수료: ${prepareRes.feesSat} sats`);
 
-      // 2. Send
       await sendPayment({ prepareResponse: prepareRes });
       addLog('✅ 결제 성공!');
       Alert.alert('성공', '결제가 완료되었습니다!');
@@ -270,6 +314,14 @@ export function useNode(): [NodeState, NodeActions] {
     }
   }, [invoice]);
 
+  // 비트코인 주소 복사
+  const copyBitcoinAddress = useCallback(() => {
+    if (bitcoinAddress) {
+      Clipboard.setString(bitcoinAddress);
+      Alert.alert('복사됨', '비트코인 주소가 클립보드에 복사되었습니다.');
+    }
+  }, [bitcoinAddress]);
+
   const state: NodeState = {
     status,
     mnemonic,
@@ -278,6 +330,8 @@ export function useNode(): [NodeState, NodeActions] {
     pendingBalance,
     invoice,
     invoiceAmount,
+    bitcoinAddress,
+    receiveMethod,
     invoiceToSend,
     logs,
   };
@@ -285,11 +339,14 @@ export function useNode(): [NodeState, NodeActions] {
   const actions: NodeActions = {
     initNode,
     receivePaymentAction,
+    generateBitcoinAddress,
     sendPaymentAction,
     copyInvoice,
+    copyBitcoinAddress,
     setShowMnemonic,
     setInvoiceAmount,
     setInvoiceToSend,
+    setReceiveMethod,
     refreshBalance,
     isConnected,
   };

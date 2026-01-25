@@ -25,8 +25,10 @@
     "react-native-fs": "^2.20.0",
     "react-native-get-random-values": "^2.0.0",
     "react-native-keychain": "^10.0.0",
+    "react-native-qrcode-svg": "^6.3.21",
     "react-native-safe-area-context": "^5.6.2",
     "react-native-screens": "^4.20.0",
+    "react-native-svg": "^15.15.1",
     "styled-components": "^6.1.19"
   },
   "devDependencies": {
