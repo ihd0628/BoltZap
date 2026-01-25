@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+
+# React Native
+.expo/
+dist/
+*.hbc
+
+# iOS
+ios/Pods/
+ios/build/
+*.xcworkspace
+!ios/BoltZap.xcworkspace
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xcuserstate
+xcuserdata/
+
+# Android
+android/.gradle/
+android/app/build/
+android/build/
+*.apk
+*.aab
+
+# Environment variables (보안!)
+.env
+.env.local
+.env.production
+
+# Metro
+.metro-health-check*
+
+# Debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+*.swp
+*.swo

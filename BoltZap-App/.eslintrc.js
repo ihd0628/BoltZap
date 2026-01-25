@@ -14,7 +14,6 @@ module.exports = {
     'react-hooks',
     'prettier',
     '@typescript-eslint',
-    'simple-import-sort',
   ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
@@ -40,8 +39,7 @@ module.exports = {
         fixStyle: 'inline-type-imports',
       },
     ],
-    'simple-import-sort/imports': 'error',
-    'simple-import-sort/exports': 'error',
+
     /* React Native Options */
     'react-native/no-unused-styles': 'off',
     'react-native/no-color-literals': 'off',

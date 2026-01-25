@@ -20,12 +20,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import * as Keychain from 'react-native-keychain';
 
+import Config from 'react-native-config';
+
 const KEYCHAIN_SERVICE = 'boltzap_wallet';
 
-// TODO: 실제 API 키로 교체 필요!
-// https://breez.technology/request-api-key 에서 요청
-const BREEZ_API_KEY =
-  '***REMOVED***';
+// 환경변수에서 API 키 로드 (.env 파일)
+const BREEZ_API_KEY = Config.BREEZ_API_KEY || '';
 
 export type NodeStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
 
