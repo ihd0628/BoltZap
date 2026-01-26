@@ -11,7 +11,7 @@
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		B6718277C238565E1E63A6BB /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
-		B82CD6F8B42140AEBE0CBCA9 /* libPods-BoltZap.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3E4DD490AC85A4A16F3A5086 /* libPods-BoltZap.a */; };
+		EE9C9A004EFF6F60D33982F8 /* libPods-BoltZap.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5607F2A9541AD731194A32C9 /* libPods-BoltZap.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -19,12 +19,12 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = BoltZap/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = BoltZap/Info.plist; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = BoltZap/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		3E4DD490AC85A4A16F3A5086 /* libPods-BoltZap.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-BoltZap.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		5607F2A9541AD731194A32C9 /* libPods-BoltZap.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-BoltZap.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = BoltZap/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = BoltZap/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		D35C3077BFDA69DDFE73D7C9 /* Pods-BoltZap.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BoltZap.debug.xcconfig"; path = "Target Support Files/Pods-BoltZap/Pods-BoltZap.debug.xcconfig"; sourceTree = "<group>"; };
-		E78CFE747C538874B923BF4C /* Pods-BoltZap.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BoltZap.release.xcconfig"; path = "Target Support Files/Pods-BoltZap/Pods-BoltZap.release.xcconfig"; sourceTree = "<group>"; };
+		C4860145AE01F06A0238EF8A /* Pods-BoltZap.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BoltZap.release.xcconfig"; path = "Target Support Files/Pods-BoltZap/Pods-BoltZap.release.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		FAAD90002CB1054E1AB92170 /* Pods-BoltZap.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-BoltZap.debug.xcconfig"; path = "Target Support Files/Pods-BoltZap/Pods-BoltZap.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,7 +32,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B82CD6F8B42140AEBE0CBCA9 /* libPods-BoltZap.a in Frameworks */,
+				EE9C9A004EFF6F60D33982F8 /* libPods-BoltZap.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -55,7 +55,7 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				3E4DD490AC85A4A16F3A5086 /* libPods-BoltZap.a */,
+				5607F2A9541AD731194A32C9 /* libPods-BoltZap.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -92,8 +92,8 @@
 		BBD78D7AC51CEA395F1C20DB /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				D35C3077BFDA69DDFE73D7C9 /* Pods-BoltZap.debug.xcconfig */,
-				E78CFE747C538874B923BF4C /* Pods-BoltZap.release.xcconfig */,
+				FAAD90002CB1054E1AB92170 /* Pods-BoltZap.debug.xcconfig */,
+				C4860145AE01F06A0238EF8A /* Pods-BoltZap.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -105,13 +105,13 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "BoltZap" */;
 			buildPhases = (
-				01AC428A4A5A4EA94F9F10B7 /* [CP] Check Pods Manifest.lock */,
+				2FDC98238FAB4D92E79B154D /* [CP] Check Pods Manifest.lock */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
-				FA698C519F09817868D61EDE /* [CP] Embed Pods Frameworks */,
-				E534F9AE0615AA9CE30B54CE /* [CP] Copy Pods Resources */,
+				13FA871E014F3DEF3FC2A96A /* [CP] Embed Pods Frameworks */,
+				6DB7D0766BE3C4B9D2644558 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -183,7 +183,24 @@
 			shellPath = /bin/sh;
 			shellScript = "set -e\n\nWITH_ENVIRONMENT=\"$REACT_NATIVE_PATH/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"$REACT_NATIVE_PATH/scripts/react-native-xcode.sh\"\n\n/bin/sh -c \"\\\"$WITH_ENVIRONMENT\\\" \\\"$REACT_NATIVE_XCODE\\\"\"\n";
 		};
-		01AC428A4A5A4EA94F9F10B7 /* [CP] Check Pods Manifest.lock */ = {
+		13FA871E014F3DEF3FC2A96A /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-BoltZap/Pods-BoltZap-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-BoltZap/Pods-BoltZap-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-BoltZap/Pods-BoltZap-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		2FDC98238FAB4D92E79B154D /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -205,7 +222,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		E534F9AE0615AA9CE30B54CE /* [CP] Copy Pods Resources */ = {
+		6DB7D0766BE3C4B9D2644558 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -220,23 +237,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-BoltZap/Pods-BoltZap-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		FA698C519F09817868D61EDE /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-BoltZap/Pods-BoltZap-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-BoltZap/Pods-BoltZap-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-BoltZap/Pods-BoltZap-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -255,7 +255,7 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D35C3077BFDA69DDFE73D7C9 /* Pods-BoltZap.debug.xcconfig */;
+			baseConfigurationReference = FAAD90002CB1054E1AB92170 /* Pods-BoltZap.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -283,7 +283,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = E78CFE747C538874B923BF4C /* Pods-BoltZap.release.xcconfig */;
+			baseConfigurationReference = C4860145AE01F06A0238EF8A /* Pods-BoltZap.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
