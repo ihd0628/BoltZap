@@ -34,6 +34,7 @@ export const ReceiveScreen = ({
     setInvoiceAmount,
     receivePaymentAction,
     generateBitcoinAddress,
+    generateAmountlessBitcoinAddress,
     copyInvoice,
     copyBitcoinAddress,
     setReceiveMethod,
@@ -86,26 +87,57 @@ export const ReceiveScreen = ({
           </S.MethodOption>
         </S.MethodSelector>
 
-        <InputLabel>금액 (sats)</InputLabel>
-        <Input
-          value={invoiceAmount}
-          onChangeText={setInvoiceAmount}
-          keyboardType="numeric"
-          placeholder={
-            receiveMethod === 'lightning' ? '필수 입력' : '선택 사항'
-          }
-        />
+        {receiveMethod === 'lightning' ? (
+          <>
+            <InputLabel>금액 (sats) - 필수</InputLabel>
+            <Input
+              value={invoiceAmount}
+              onChangeText={setInvoiceAmount}
+              keyboardType="numeric"
+              placeholder="100 ~ 25,000,000 sats 사이로 입력해주세요"
+            />
+            <Button
+              onPress={handleCreate}
+              disabled={!isConnected}
+              variant="accent"
+              fullWidth
+            >
+              <ButtonText>인보이스 생성</ButtonText>
+            </Button>
+          </>
+        ) : (
+          <>
+            {/* 비트코인 - 버튼 2개 */}
+            <Button
+              onPress={generateAmountlessBitcoinAddress}
+              disabled={!isConnected}
+              variant="accent"
+              fullWidth
+              style={{ marginBottom: 12 }}
+            >
+              <ButtonText>비트코인으로 받기</ButtonText>
+            </Button>
 
-        <Button
-          onPress={handleCreate}
-          disabled={!isConnected}
-          variant="accent"
-          fullWidth
-        >
-          <ButtonText>
-            {receiveMethod === 'lightning' ? '인보이스 생성' : '주소 생성'}
-          </ButtonText>
-        </Button>
+            <InputLabel>금액 지정 (sats) - 선택</InputLabel>
+            <Input
+              value={invoiceAmount}
+              onChangeText={setInvoiceAmount}
+              keyboardType="numeric"
+              placeholder="최소 25,000 sats"
+            />
+            <Button
+              onPress={handleCreate}
+              disabled={!isConnected}
+              variant="primary"
+              fullWidth
+            >
+              <ButtonText variant="primary">
+                {invoiceAmount ? `${invoiceAmount} sats` : '금액'} 지정 주소
+                생성
+              </ButtonText>
+            </Button>
+          </>
+        )}
 
         {currentAddress ? (
           <>

@@ -53,6 +53,7 @@ export interface NodeActions {
   initNode: () => Promise<void>;
   receivePaymentAction: () => Promise<void>;
   generateBitcoinAddress: () => Promise<void>;
+  generateAmountlessBitcoinAddress: () => Promise<void>;
   sendPaymentAction: () => Promise<void>;
   fetchPayments: () => Promise<void>;
   copyInvoice: () => void;
@@ -84,7 +85,7 @@ export function useNode(): [NodeState, NodeActions] {
 
   // Receive State
   const [invoice, setInvoice] = useState<string>('');
-  const [invoiceAmount, setInvoiceAmount] = useState<string>('1000');
+  const [invoiceAmount, setInvoiceAmount] = useState<string>('');
   const [bitcoinAddress, setBitcoinAddress] = useState<string>('');
   const [receiveMethod, setReceiveMethod] =
     useState<ReceiveMethod>('lightning');
@@ -264,6 +265,33 @@ export function useNode(): [NodeState, NodeActions] {
     }
   }, [isConnected, invoiceAmount, addLog]);
 
+  // 금액 미지정 비트코인 주소 생성 (Amountless)
+  const generateAmountlessBitcoinAddress = useCallback(async () => {
+    if (!isConnected) {
+      Alert.alert('오류', '먼저 연결해주세요.');
+      return;
+    }
+
+    try {
+      addLog('🔗 금액 미지정 비트코인 주소 생성 중...');
+
+      const prepareRes = await prepareReceivePayment({
+        paymentMethod: PaymentMethod.BITCOIN_ADDRESS,
+        // amount 생략 (Amountless)
+      });
+      addLog(`📋 예상 수수료: ${prepareRes.feesSat} sats`);
+
+      const receiveRes = await receivePayment({ prepareResponse: prepareRes });
+      setBitcoinAddress(receiveRes.destination);
+      addLog('🔗 금액 미지정 비트코인 주소 생성 완료!');
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        addLog(`❌ 주소 생성 오류: ${e.message}`);
+        Alert.alert('오류', e.message);
+      }
+    }
+  }, [isConnected, addLog]);
+
   // 결제 보내기
   const sendPaymentAction = useCallback(async () => {
     if (!isConnected) {
@@ -333,6 +361,7 @@ export function useNode(): [NodeState, NodeActions] {
     initNode,
     receivePaymentAction,
     generateBitcoinAddress,
+    generateAmountlessBitcoinAddress,
     sendPaymentAction,
     fetchPayments,
     copyInvoice,
