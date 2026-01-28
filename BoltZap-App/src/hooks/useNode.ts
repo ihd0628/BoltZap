@@ -114,34 +114,6 @@ export function useNode(): [NodeState, NodeActions] {
     }
   }, [addLog]);
 
-  // SDK 이벤트 리스너
-  useEffect(() => {
-    if (status !== 'connected') return;
-
-    const setupListener = async () => {
-      try {
-        const listener: EventListener = event => {
-          addLog(`📡 이벤트: ${event.type}`);
-
-          // 결제 완료 시 잔액 갱신
-          if (
-            event.type === 'paymentSucceeded' ||
-            event.type === 'paymentFailed'
-          ) {
-            refreshBalance();
-          }
-        };
-
-        const listenerId = await addEventListener(listener);
-        listenerIdRef.current = listenerId;
-      } catch (e) {
-        console.log('Event listener setup failed:', e);
-      }
-    };
-
-    setupListener();
-  }, [status, addLog, refreshBalance]);
-
   // 노드 초기화 및 연결
   const initNode = useCallback(async () => {
     try {
@@ -350,6 +322,39 @@ export function useNode(): [NodeState, NodeActions] {
     refreshBalance,
     isConnected,
   };
+
+  // SDK 이벤트 리스너
+  useEffect(() => {
+    if (status !== 'connected') return;
+
+    const setupListener = async () => {
+      try {
+        const listener: EventListener = event => {
+          addLog(`📡 이벤트: ${event.type}`);
+
+          // 결제 완료 시 잔액 갱신
+          if (
+            event.type === 'paymentSucceeded' ||
+            event.type === 'paymentFailed'
+          ) {
+            refreshBalance();
+          }
+        };
+
+        const listenerId = await addEventListener(listener);
+        listenerIdRef.current = listenerId;
+      } catch (e) {
+        console.log('Event listener setup failed:', e);
+      }
+    };
+
+    setupListener();
+  }, [status, addLog, refreshBalance]);
+
+  // 앱 실행 시 자동 연결 (Auto Connect)
+  useEffect(() => {
+    initNode();
+  }, [initNode]);
 
   return [state, actions];
 }
