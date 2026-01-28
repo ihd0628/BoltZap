@@ -4,6 +4,13 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNodeContext } from '../context/NodeContext';
 import { theme } from '../theme';
 import { type RootTabParamList } from './types';
+import {
+  HouseIcon,
+  UploadSimpleIcon,
+  DownloadSimpleIcon,
+  ScrollIcon,
+  LightningIcon,
+} from 'phosphor-react-native';
 
 // Screens
 import { HomeScreen } from '../screens/home/HomeScreen';
@@ -18,13 +25,17 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
 // 탭 아이콘 컴포넌트
 // ============================================
 const TabIcon = ({
-  emoji,
+  Icon,
   focused,
 }: {
-  emoji: string;
+  Icon: React.ElementType;
   focused: boolean;
 }): React.JSX.Element => (
-  <Text style={{ fontSize: 24, opacity: focused ? 1 : 0.5 }}>{emoji}</Text>
+  <Icon
+    size={24}
+    color={focused ? theme.colors.tab.active : theme.colors.tab.inactive}
+    weight={focused ? 'fill' : 'regular'}
+  />
 );
 
 // ============================================
@@ -78,7 +89,9 @@ export const RootNavigator = (): React.JSX.Element => {
         component={HomeScreenWrapper}
         options={{
           tabBarLabel: '홈',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🏠" focused={focused} />,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon Icon={HouseIcon} focused={focused} />
+          ),
         }}
       />
       <Tab.Screen
@@ -86,7 +99,9 @@ export const RootNavigator = (): React.JSX.Element => {
         component={SendScreenWrapper}
         options={{
           tabBarLabel: '보내기',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="📤" focused={focused} />,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon Icon={UploadSimpleIcon} focused={focused} />
+          ),
         }}
       />
       <Tab.Screen
@@ -94,7 +109,9 @@ export const RootNavigator = (): React.JSX.Element => {
         component={ReceiveScreenWrapper}
         options={{
           tabBarLabel: '받기',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="📥" focused={focused} />,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon Icon={DownloadSimpleIcon} focused={focused} />
+          ),
         }}
       />
       <Tab.Screen
@@ -102,7 +119,9 @@ export const RootNavigator = (): React.JSX.Element => {
         component={TransactionsScreen}
         options={{
           tabBarLabel: '내역',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="📜" focused={focused} />,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon Icon={ScrollIcon} focused={focused} />
+          ),
         }}
       />
       <Tab.Screen
@@ -110,7 +129,9 @@ export const RootNavigator = (): React.JSX.Element => {
         component={NodeScreenWrapper}
         options={{
           tabBarLabel: '노드',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="⚙️" focused={focused} />,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon Icon={LightningIcon} focused={focused} />
+          ),
         }}
       />
     </Tab.Navigator>

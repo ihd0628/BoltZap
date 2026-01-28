@@ -81,7 +81,7 @@ export const ReceiveScreen = ({
             onPress={() => setReceiveMethod('onchain')}
           >
             <S.MethodText selected={receiveMethod === 'onchain'}>
-              비트코인 🔗
+              비트코인 ₿
             </S.MethodText>
           </S.MethodOption>
         </S.MethodSelector>
