@@ -7,6 +7,8 @@ import {
   type EventListener,
   getInfo,
   LiquidNetwork,
+  listPayments,
+  Payment,
   PaymentMethod,
   prepareReceivePayment,
   prepareSendPayment,
@@ -36,6 +38,7 @@ export interface NodeState {
   showMnemonic: boolean;
   balance: number;
   pendingBalance: number;
+  payments: Payment[];
   // 결제 받기 관련
   invoice: string;
   invoiceAmount: string;
@@ -51,6 +54,7 @@ export interface NodeActions {
   receivePaymentAction: () => Promise<void>;
   generateBitcoinAddress: () => Promise<void>;
   sendPaymentAction: () => Promise<void>;
+  fetchPayments: () => Promise<void>;
   copyInvoice: () => void;
   copyBitcoinAddress: () => void;
   setShowMnemonic: (show: boolean) => void;
@@ -74,6 +78,7 @@ export function useNode(): [NodeState, NodeActions] {
   // Wallet State
   const [balance, setBalance] = useState<number>(0);
   const [pendingBalance, setPendingBalance] = useState<number>(0);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [mnemonic, setMnemonic] = useState<string>('');
   const [showMnemonic, setShowMnemonic] = useState<boolean>(false);
 
@@ -110,6 +115,20 @@ export function useNode(): [NodeState, NodeActions] {
     } catch (e: unknown) {
       if (e instanceof Error) {
         addLog(`❌ 잔액 조회 실패: ${e.message}`);
+      }
+    }
+  }, [addLog]);
+
+  // 거래 내역 조회
+  const fetchPayments = useCallback(async () => {
+    if (!isSDKConnected) return;
+    try {
+      const result = await listPayments({});
+      setPayments(result);
+      addLog(`📜 거래 내역 업데이트: ${result.length}건`);
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        addLog(`❌ 거래 내역 조회 실패: ${e.message}`);
       }
     }
   }, [addLog]);
@@ -164,6 +183,7 @@ export function useNode(): [NodeState, NodeActions] {
 
       // 잔액 조회
       await refreshBalance();
+      await fetchPayments();
     } catch (e: unknown) {
       setStatus('error');
       if (e instanceof Error) {
@@ -300,6 +320,7 @@ export function useNode(): [NodeState, NodeActions] {
     showMnemonic,
     balance,
     pendingBalance,
+    payments,
     invoice,
     invoiceAmount,
     bitcoinAddress,
@@ -313,6 +334,7 @@ export function useNode(): [NodeState, NodeActions] {
     receivePaymentAction,
     generateBitcoinAddress,
     sendPaymentAction,
+    fetchPayments,
     copyInvoice,
     copyBitcoinAddress,
     setShowMnemonic,
@@ -332,12 +354,13 @@ export function useNode(): [NodeState, NodeActions] {
         const listener: EventListener = event => {
           addLog(`📡 이벤트: ${event.type}`);
 
-          // 결제 완료 시 잔액 갱신
+          // 결제 완료 시 잔액 및 내역 갱신
           if (
             event.type === 'paymentSucceeded' ||
             event.type === 'paymentFailed'
           ) {
             refreshBalance();
+            fetchPayments();
           }
         };
 

@@ -9,6 +9,7 @@ import { type RootTabParamList } from './types';
 import { HomeScreen } from '../screens/home/HomeScreen';
 import { SendScreen } from '../screens/send/SendScreen';
 import { ReceiveScreen } from '../screens/receive/ReceiveScreen';
+import { TransactionsScreen } from '../screens/transactions/TransactionsScreen';
 import { NodeScreen } from '../screens/node/NodeScreen';
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
@@ -94,6 +95,14 @@ export const RootNavigator = (): React.JSX.Element => {
         options={{
           tabBarLabel: '받기',
           tabBarIcon: ({ focused }) => <TabIcon emoji="📥" focused={focused} />,
+        }}
+      />
+      <Tab.Screen
+        name="Transactions"
+        component={TransactionsScreen}
+        options={{
+          tabBarLabel: '내역',
+          tabBarIcon: ({ focused }) => <TabIcon emoji="📜" focused={focused} />,
         }}
       />
       <Tab.Screen
