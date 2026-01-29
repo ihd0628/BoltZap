@@ -18,6 +18,7 @@ import {
 } from '../../components';
 import { type NodeActions, type NodeState } from '../../hooks/useNode';
 import { useLoading } from '../../hooks/useLoading';
+import { useModal } from '../../hooks/useModal';
 import * as S from './ReceiveScreen.style';
 
 interface ReceiveScreenProps {
@@ -42,38 +43,57 @@ export const ReceiveScreen = ({
   } = actions;
 
   const { showLoadingIndicator, hideLoadingIndicator } = useLoading();
+  const { showModal } = useModal();
 
   const handleCreate = async () => {
     showLoadingIndicator('QR 코드 생성 중...');
-    try {
-      if (receiveMethod === 'lightning') {
-        await receivePaymentAction();
-      } else {
-        await generateBitcoinAddress();
-      }
-    } finally {
-      hideLoadingIndicator();
+
+    const result =
+      receiveMethod === 'lightning'
+        ? await receivePaymentAction()
+        : await generateBitcoinAddress();
+
+    if (!result.success) {
+      showModal({
+        title: '앗, 잠시만요',
+        message: result.error || '알 수 없는 오류가 발생했습니다.',
+        confirmText: '확인',
+      });
+      return;
     }
+    hideLoadingIndicator();
   };
 
   const handleAmountlessCreate = async () => {
     showLoadingIndicator('QR 코드 생성 중...');
-    try {
-      await generateAmountlessBitcoinAddress();
-    } finally {
-      hideLoadingIndicator();
+
+    const result = await generateAmountlessBitcoinAddress();
+
+    if (!result.success) {
+      showModal({
+        title: '앗, 잠시만요',
+        message: result.error || '알 수 없는 오류가 발생했습니다.',
+        confirmText: '확인',
+      });
+      return;
     }
+    hideLoadingIndicator();
   };
 
   const currentAddress =
     receiveMethod === 'lightning' ? invoice : bitcoinAddress;
 
   const handleCopy = () => {
-    if (receiveMethod === 'lightning') {
-      copyInvoice();
-    } else {
-      copyBitcoinAddress();
-    }
+    const result =
+      receiveMethod === 'lightning' ? copyInvoice() : copyBitcoinAddress();
+
+    showModal({
+      title: result.success ? '복사됨' : '앗, 잠시만요',
+      message: result.success
+        ? result.message || '클립보드에 복사되었습니다.'
+        : result.error || '복사에 실패했습니다.',
+      confirmText: '확인',
+    });
   };
 
   return (
