@@ -4,16 +4,58 @@ import { useModalStore } from '../../store/modalStore';
 import * as S from './GlobalModal.style';
 
 export const GlobalModal = (): React.JSX.Element | null => {
-  const { visible, options, hideModal } = useModalStore();
+  const {
+    visible,
+    modalType,
+    options,
+    customComponent,
+    componentOptions,
+    hideModal,
+  } = useModalStore();
+
   const [localOptions, setLocalOptions] = useState(options);
+  const [localComponent, setLocalComponent] = useState(customComponent);
 
-  // 닫힐 때 애니메이션이 끝난 후 options 초기화
+  // 닫힐 때 애니메이션이 끝난 후 옵션 초기화
   useEffect(() => {
-    if (visible && options) {
-      setLocalOptions(options);
+    if (visible) {
+      if (modalType === 'default' && options) {
+        setLocalOptions(options);
+      }
+      if (modalType === 'component' && customComponent) {
+        setLocalComponent(customComponent);
+      }
     }
-  }, [visible, options]);
+  }, [visible, modalType, options, customComponent]);
 
+  // 컴포넌트 모달 렌더링
+  if (modalType === 'component' && localComponent) {
+    const isBackgroundTouchClose =
+      componentOptions?.isBackgroundTouchClose ?? true;
+
+    const handleBackgroundPress = () => {
+      if (isBackgroundTouchClose) {
+        componentOptions?.onClose?.();
+        hideModal();
+      }
+    };
+
+    return (
+      <Modal
+        visible={visible}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={hideModal}
+      >
+        <S.Overlay activeOpacity={1} onPress={handleBackgroundPress}>
+          {localComponent}
+        </S.Overlay>
+      </Modal>
+    );
+  }
+
+  // 기본 모달 렌더링
   if (!localOptions) return null;
 
   const {
