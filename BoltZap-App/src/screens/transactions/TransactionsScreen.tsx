@@ -4,7 +4,7 @@ import { useNodeContext } from '../../context/NodeContext';
 import * as S from './TransactionsScreen.style';
 import { Payment, PaymentType } from '@breeztech/react-native-breez-sdk-liquid';
 import { theme } from '../../theme';
-import { ArrowDownLeft, ArrowUpRight } from 'phosphor-react-native';
+import { ArrowDownLeftIcon, ArrowUpRightIcon } from 'phosphor-react-native';
 
 export const TransactionsScreen = (): React.JSX.Element => {
   const { state, actions } = useNodeContext();
@@ -40,13 +40,13 @@ export const TransactionsScreen = (): React.JSX.Element => {
       <S.TransactionItem>
         <S.IconContainer type={isReceive ? 'receive' : 'send'}>
           {isReceive ? (
-            <ArrowDownLeft
+            <ArrowDownLeftIcon
               size={20}
               color={theme.colors.status.success}
               weight="bold"
             />
           ) : (
-            <ArrowUpRight
+            <ArrowUpRightIcon
               size={20}
               color={theme.colors.status.error} // Assuming this is defined as red/orange
               weight="bold"
