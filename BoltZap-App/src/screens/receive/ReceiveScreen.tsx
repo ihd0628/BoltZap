@@ -17,6 +17,7 @@ import {
   Label,
 } from '../../components';
 import { type NodeActions, type NodeState } from '../../hooks/useNode';
+import { useLoading } from '../../hooks/useLoading';
 import * as S from './ReceiveScreen.style';
 
 interface ReceiveScreenProps {
@@ -40,11 +41,27 @@ export const ReceiveScreen = ({
     setReceiveMethod,
   } = actions;
 
-  const handleCreate = () => {
-    if (receiveMethod === 'lightning') {
-      receivePaymentAction();
-    } else {
-      generateBitcoinAddress();
+  const { showLoadingIndicator, hideLoadingIndicator } = useLoading();
+
+  const handleCreate = async () => {
+    showLoadingIndicator('QR 코드 생성 중...');
+    try {
+      if (receiveMethod === 'lightning') {
+        await receivePaymentAction();
+      } else {
+        await generateBitcoinAddress();
+      }
+    } finally {
+      hideLoadingIndicator();
+    }
+  };
+
+  const handleAmountlessCreate = async () => {
+    showLoadingIndicator('QR 코드 생성 중...');
+    try {
+      await generateAmountlessBitcoinAddress();
+    } finally {
+      hideLoadingIndicator();
     }
   };
 
@@ -109,7 +126,7 @@ export const ReceiveScreen = ({
           <>
             {/* 비트코인 - 버튼 2개 */}
             <Button
-              onPress={generateAmountlessBitcoinAddress}
+              onPress={handleAmountlessCreate}
               disabled={!isConnected}
               variant="accent"
               fullWidth

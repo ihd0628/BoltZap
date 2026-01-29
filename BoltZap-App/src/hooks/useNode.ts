@@ -51,10 +51,10 @@ export interface NodeState {
 
 export interface NodeActions {
   initNode: () => Promise<void>;
-  receivePaymentAction: () => Promise<void>;
-  generateBitcoinAddress: () => Promise<void>;
-  generateAmountlessBitcoinAddress: () => Promise<void>;
-  sendPaymentAction: () => Promise<void>;
+  receivePaymentAction: () => Promise<boolean>;
+  generateBitcoinAddress: () => Promise<boolean>;
+  generateAmountlessBitcoinAddress: () => Promise<boolean>;
+  sendPaymentAction: () => Promise<boolean>;
   fetchPayments: () => Promise<void>;
   copyInvoice: () => void;
   copyBitcoinAddress: () => void;
@@ -195,17 +195,17 @@ export function useNode(): [NodeState, NodeActions] {
   }, [addLog, refreshBalance]);
 
   // 라이트닝 인보이스 생성
-  const receivePaymentAction = useCallback(async () => {
+  const receivePaymentAction = useCallback(async (): Promise<boolean> => {
     if (!isConnected) {
       Alert.alert('오류', '먼저 연결해주세요.');
-      return;
+      return false;
     }
 
     try {
       const amount = parseInt(invoiceAmount, 10);
       if (isNaN(amount) || amount <= 0) {
         Alert.alert('오류', '올바른 금액을 입력해주세요.');
-        return;
+        return false;
       }
 
       addLog(`⚡ ${amount} sats 라이트닝 인보이스 생성 중...`);
@@ -222,19 +222,21 @@ export function useNode(): [NodeState, NodeActions] {
       const receiveRes = await receivePayment({ prepareResponse: prepareRes });
       setInvoice(receiveRes.destination);
       addLog('🧾 라이트닝 인보이스 생성 완료!');
+      return true;
     } catch (e: unknown) {
       if (e instanceof Error) {
         addLog(`❌ 인보이스 오류: ${e.message}`);
         Alert.alert('오류', e.message);
       }
+      return false;
     }
   }, [isConnected, invoiceAmount, addLog]);
 
   // 비트코인 온체인 주소 생성
-  const generateBitcoinAddress = useCallback(async () => {
+  const generateBitcoinAddress = useCallback(async (): Promise<boolean> => {
     if (!isConnected) {
       Alert.alert('오류', '먼저 연결해주세요.');
-      return;
+      return false;
     }
 
     try {
@@ -257,51 +259,58 @@ export function useNode(): [NodeState, NodeActions] {
       const receiveRes = await receivePayment({ prepareResponse: prepareRes });
       setBitcoinAddress(receiveRes.destination);
       addLog('🔗 비트코인 주소 생성 완료!');
+      return true;
     } catch (e: unknown) {
       if (e instanceof Error) {
         addLog(`❌ 주소 생성 오류: ${e.message}`);
         Alert.alert('오류', e.message);
       }
+      return false;
     }
   }, [isConnected, invoiceAmount, addLog]);
 
   // 금액 미지정 비트코인 주소 생성 (Amountless)
-  const generateAmountlessBitcoinAddress = useCallback(async () => {
-    if (!isConnected) {
-      Alert.alert('오류', '먼저 연결해주세요.');
-      return;
-    }
-
-    try {
-      addLog('🔗 금액 미지정 비트코인 주소 생성 중...');
-
-      const prepareRes = await prepareReceivePayment({
-        paymentMethod: PaymentMethod.BITCOIN_ADDRESS,
-        // amount 생략 (Amountless)
-      });
-      addLog(`📋 예상 수수료: ${prepareRes.feesSat} sats`);
-
-      const receiveRes = await receivePayment({ prepareResponse: prepareRes });
-      setBitcoinAddress(receiveRes.destination);
-      addLog('🔗 금액 미지정 비트코인 주소 생성 완료!');
-    } catch (e: unknown) {
-      if (e instanceof Error) {
-        addLog(`❌ 주소 생성 오류: ${e.message}`);
-        Alert.alert('오류', e.message);
+  const generateAmountlessBitcoinAddress =
+    useCallback(async (): Promise<boolean> => {
+      if (!isConnected) {
+        Alert.alert('오류', '먼저 연결해주세요.');
+        return false;
       }
-    }
-  }, [isConnected, addLog]);
+
+      try {
+        addLog('🔗 금액 미지정 비트코인 주소 생성 중...');
+
+        const prepareRes = await prepareReceivePayment({
+          paymentMethod: PaymentMethod.BITCOIN_ADDRESS,
+          // amount 생략 (Amountless)
+        });
+        addLog(`📋 예상 수수료: ${prepareRes.feesSat} sats`);
+
+        const receiveRes = await receivePayment({
+          prepareResponse: prepareRes,
+        });
+        setBitcoinAddress(receiveRes.destination);
+        addLog('🔗 금액 미지정 비트코인 주소 생성 완료!');
+        return true;
+      } catch (e: unknown) {
+        if (e instanceof Error) {
+          addLog(`❌ 주소 생성 오류: ${e.message}`);
+          Alert.alert('오류', e.message);
+        }
+        return false;
+      }
+    }, [isConnected, addLog]);
 
   // 결제 보내기
-  const sendPaymentAction = useCallback(async () => {
+  const sendPaymentAction = useCallback(async (): Promise<boolean> => {
     if (!isConnected) {
       Alert.alert('오류', '먼저 연결해주세요.');
-      return;
+      return false;
     }
 
     if (!invoiceToSend.trim()) {
       Alert.alert('오류', '인보이스를 입력해주세요.');
-      return;
+      return false;
     }
 
     try {
@@ -318,11 +327,13 @@ export function useNode(): [NodeState, NodeActions] {
 
       setInvoiceToSend('');
       await refreshBalance();
+      return true;
     } catch (e: unknown) {
       if (e instanceof Error) {
         addLog(`❌ 결제 실패: ${e.message}`);
         Alert.alert('오류', e.message);
       }
+      return false;
     }
   }, [isConnected, invoiceToSend, addLog, refreshBalance]);
 
