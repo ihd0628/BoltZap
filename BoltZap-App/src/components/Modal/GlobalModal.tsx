@@ -1,0 +1,76 @@
+import React, { useEffect, useState } from 'react';
+import { Modal } from 'react-native';
+import { useModalStore } from '../../store/modalStore';
+import * as S from './GlobalModal.style';
+
+export const GlobalModal = (): React.JSX.Element | null => {
+  const { visible, options, hideModal } = useModalStore();
+  const [localOptions, setLocalOptions] = useState(options);
+
+  // 닫힐 때 애니메이션이 끝난 후 options 초기화
+  useEffect(() => {
+    if (visible && options) {
+      setLocalOptions(options);
+    }
+  }, [visible, options]);
+
+  if (!localOptions) return null;
+
+  const {
+    title,
+    message,
+    confirmText = '확인',
+    onConfirm,
+    cancelText,
+    onCancel,
+    isBackgroundTouchClose = true,
+  } = localOptions;
+
+  const handleConfirm = () => {
+    onConfirm?.();
+    hideModal();
+  };
+
+  const handleCancel = () => {
+    onCancel?.();
+    hideModal();
+  };
+
+  const handleBackgroundPress = () => {
+    if (isBackgroundTouchClose) {
+      hideModal();
+    }
+  };
+
+  const hasCancel = !!cancelText || !!onCancel;
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      statusBarTranslucent
+      onRequestClose={hideModal}
+    >
+      <S.Overlay activeOpacity={1} onPress={handleBackgroundPress}>
+        <S.ModalContainer onStartShouldSetResponder={() => true}>
+          <S.Title>{title}</S.Title>
+          <S.Message>{message}</S.Message>
+
+          <S.ButtonContainer>
+            {hasCancel && (
+              <S.ModalButton variant="cancel" onPress={handleCancel}>
+                <S.ButtonText variant="cancel">
+                  {cancelText || '취소'}
+                </S.ButtonText>
+              </S.ModalButton>
+            )}
+            <S.ModalButton variant="confirm" onPress={handleConfirm}>
+              <S.ButtonText variant="confirm">{confirmText}</S.ButtonText>
+            </S.ModalButton>
+          </S.ButtonContainer>
+        </S.ModalContainer>
+      </S.Overlay>
+    </Modal>
+  );
+};

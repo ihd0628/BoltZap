@@ -13,6 +13,7 @@ export const theme = {
       primary: '#FFFFFF', // 화이트
       secondary: '#8E8E93', // 라이트 그레이
       white: '#FFFFFF',
+      dark: '#1A1A1A', // 다크 (버튼 텍스트 등)
       placeholder: '#4A4A4A',
       muted: '#666666',
     },
