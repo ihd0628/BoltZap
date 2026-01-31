@@ -8,7 +8,6 @@ import { theme } from '../theme';
 export const Label = styled.Text`
   font-size: ${theme.font.size.s12}px;
   color: ${theme.colors.text.secondary};
-  margin-bottom: ${theme.gap.g04}px;
   text-transform: uppercase;
 `;
 

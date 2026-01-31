@@ -53,6 +53,8 @@ export interface NodeState {
   // 결제 보내기 관련
   invoiceToSend: string;
   logs: string[];
+  lightningFee: number | null;
+  onchainFee: number | null;
 }
 
 export interface NodeActions {
@@ -95,6 +97,8 @@ export function useNode(): [NodeState, NodeActions] {
   const [bitcoinAddress, setBitcoinAddress] = useState<string>('');
   const [receiveMethod, setReceiveMethod] =
     useState<ReceiveMethod>('lightning');
+  const [lightningFee, setLightningFee] = useState<number | null>(null);
+  const [onchainFee, setOnchainFee] = useState<number | null>(null);
 
   // Send State
   const [invoiceToSend, setInvoiceToSend] = useState<string>('');
@@ -215,6 +219,7 @@ export function useNode(): [NodeState, NodeActions] {
       }
 
       addLog(`⚡ ${amount} sats 라이트닝 인보이스 생성 중...`);
+      setLightningFee(null);
 
       const prepareRes = await prepareReceivePayment({
         paymentMethod: PaymentMethod.BOLT11_INVOICE,
@@ -227,6 +232,7 @@ export function useNode(): [NodeState, NodeActions] {
 
       const receiveRes = await receivePayment({ prepareResponse: prepareRes });
       setInvoice(receiveRes.destination);
+      setLightningFee(prepareRes.feesSat);
       addLog('🧾 라이트닝 인보이스 생성 완료!');
       return { success: true, message: '인보이스가 생성되었습니다.' };
     } catch (e: unknown) {
@@ -252,6 +258,7 @@ export function useNode(): [NodeState, NodeActions] {
           };
         }
         addLog('🔗 비트코인 온체인 주소 생성 중...');
+        setOnchainFee(null);
 
         const prepareRes = await prepareReceivePayment({
           paymentMethod: PaymentMethod.BITCOIN_ADDRESS,
@@ -269,6 +276,7 @@ export function useNode(): [NodeState, NodeActions] {
           prepareResponse: prepareRes,
         });
         setBitcoinAddress(receiveRes.destination);
+        setOnchainFee(prepareRes.feesSat);
         addLog('🔗 비트코인 주소 생성 완료!');
         return { success: true, message: '비트코인 주소가 생성되었습니다.' };
       } catch (e: unknown) {
@@ -287,6 +295,7 @@ export function useNode(): [NodeState, NodeActions] {
 
       try {
         addLog('🔗 금액 미지정 비트코인 주소 생성 중...');
+        setOnchainFee(null);
 
         const prepareRes = await prepareReceivePayment({
           paymentMethod: PaymentMethod.BITCOIN_ADDRESS,
@@ -297,6 +306,7 @@ export function useNode(): [NodeState, NodeActions] {
           prepareResponse: prepareRes,
         });
         setBitcoinAddress(receiveRes.destination);
+        setOnchainFee(prepareRes.feesSat);
         addLog('🔗 금액 미지정 비트코인 주소 생성 완료!');
         return { success: true, message: '비트코인 주소가 생성되었습니다.' };
       } catch (e: unknown) {
@@ -374,6 +384,8 @@ export function useNode(): [NodeState, NodeActions] {
     receiveMethod,
     invoiceToSend,
     logs,
+    lightningFee,
+    onchainFee,
   };
 
   const actions: NodeActions = {

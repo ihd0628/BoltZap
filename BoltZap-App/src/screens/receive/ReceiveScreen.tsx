@@ -20,6 +20,7 @@ import { type NodeActions, type NodeState } from '../../hooks/useNode';
 import { useLoading } from '../../hooks/useLoading';
 import { useModal } from '../../hooks/useModal';
 import * as S from './ReceiveScreen.style';
+import { theme } from '../../theme';
 
 interface ReceiveScreenProps {
   state: NodeState;
@@ -30,7 +31,14 @@ export const ReceiveScreen = ({
   state,
   actions,
 }: ReceiveScreenProps): React.JSX.Element => {
-  const { invoice, invoiceAmount, bitcoinAddress, receiveMethod } = state;
+  const {
+    invoice,
+    invoiceAmount,
+    bitcoinAddress,
+    receiveMethod,
+    lightningFee,
+    onchainFee,
+  } = state;
   const {
     isConnected,
     setInvoiceAmount,
@@ -181,7 +189,26 @@ export const ReceiveScreen = ({
             <Divider />
 
             {/* QR 코드 */}
-            <Label>QR 코드</Label>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: theme.gap.g08,
+              }}
+            >
+              <Label>QR 코드</Label>
+              {receiveMethod === 'lightning' && lightningFee !== null && (
+                <S.FeeInfo>
+                  💰 예상 수수료: {lightningFee.toLocaleString()} sats
+                </S.FeeInfo>
+              )}
+              {receiveMethod === 'onchain' && onchainFee !== null && (
+                <S.FeeInfo>
+                  💰 예상 수수료: {onchainFee.toLocaleString()} sats
+                </S.FeeInfo>
+              )}
+            </View>
+
             <S.QRContainer>
               <View
                 style={{

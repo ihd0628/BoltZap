@@ -64,3 +64,9 @@ export const MethodText = styled.Text<MethodOptionProps>`
   color: ${({ selected }) =>
     selected ? theme.colors.text.white : theme.colors.text.secondary};
 `;
+
+export const FeeInfo = styled.Text`
+  font-size: ${theme.font.size.s12}px;
+  color: ${theme.colors.text.secondary};
+  text-align: center;
+`;
