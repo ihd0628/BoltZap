@@ -89,16 +89,6 @@ export const HomeScreen = ({ state }: HomeScreenProps): React.JSX.Element => {
           </StatusText>
         </StatusBadge>
       </Card>
-
-      {/* 로그 */}
-      <S.Logs>
-        <S.LogTitle>로그</S.LogTitle>
-        <S.LogScroll>
-          {logs.slice(0, 10).map((log, i) => (
-            <S.LogText key={i}>{log}</S.LogText>
-          ))}
-        </S.LogScroll>
-      </S.Logs>
     </S.Container>
   );
 };

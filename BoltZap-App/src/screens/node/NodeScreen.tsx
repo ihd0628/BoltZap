@@ -103,16 +103,6 @@ export const NodeScreen = ({
           )}
         </Card>
       ) : null}
-
-      {/* 로그 */}
-      <S.Logs>
-        <S.LogTitle>로그</S.LogTitle>
-        <S.LogScroll>
-          {logs.map((log, i) => (
-            <S.LogText key={i}>{log}</S.LogText>
-          ))}
-        </S.LogScroll>
-      </S.Logs>
     </S.Container>
   );
 };
