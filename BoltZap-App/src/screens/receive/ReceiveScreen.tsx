@@ -198,14 +198,54 @@ export const ReceiveScreen = ({
             >
               <Label>QR 코드</Label>
               {receiveMethod === 'lightning' && lightningFee !== null && (
-                <S.FeeInfo>
-                  💰 예상 수수료: {lightningFee.toLocaleString()} sats
-                </S.FeeInfo>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: theme.gap.g04,
+                  }}
+                >
+                  <S.FeeInfo>
+                    💰 예상 수수료: {lightningFee.toLocaleString()} sats
+                  </S.FeeInfo>
+                  {invoiceAmount &&
+                    parseInt(invoiceAmount.replace(/,/g, '')) > 0 && (
+                      <S.FeeInfo
+                        style={{
+                          color: theme.colors.status.success,
+                        }}
+                      >
+                        ✨ 실제 수령액:{' '}
+                        {(
+                          parseInt(invoiceAmount.replace(/,/g, '')) -
+                          lightningFee
+                        ).toLocaleString()}{' '}
+                        sats
+                      </S.FeeInfo>
+                    )}
+                </View>
               )}
               {receiveMethod === 'onchain' && onchainFee !== null && (
-                <S.FeeInfo>
-                  💰 예상 수수료: {onchainFee.toLocaleString()} sats
-                </S.FeeInfo>
+                <View>
+                  <S.FeeInfo>
+                    💰 예상 수수료: {onchainFee.toLocaleString()} sats
+                  </S.FeeInfo>
+                  {invoiceAmount &&
+                    parseInt(invoiceAmount.replace(/,/g, '')) > 0 && (
+                      <S.FeeInfo
+                        style={{
+                          marginTop: 4,
+                          color: theme.colors.status.success,
+                        }}
+                      >
+                        ✨ 실제 수령액:{' '}
+                        {(
+                          parseInt(invoiceAmount.replace(/,/g, '')) - onchainFee
+                        ).toLocaleString()}{' '}
+                        sats
+                      </S.FeeInfo>
+                    )}
+                </View>
               )}
             </View>
 

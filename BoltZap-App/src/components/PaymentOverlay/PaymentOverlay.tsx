@@ -13,10 +13,10 @@ import Animated, {
 import { usePaymentOverlayStore } from '../../stores/paymentOverlayStore';
 import { theme } from '../../theme';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export const PaymentOverlay = (): React.JSX.Element | null => {
-  const { state, amount, hide } = usePaymentOverlayStore();
+  const { state, amount, type } = usePaymentOverlayStore();
 
   // Pending 애니메이션 - 프로그레스 바 높이
   const progressHeight = useSharedValue(0);
@@ -30,14 +30,12 @@ export const PaymentOverlay = (): React.JSX.Element | null => {
   useEffect(() => {
     if (state === 'pending') {
       // 프로그레스 바 애니메이션 (아래에서 위로)
-      progressHeight.value = withRepeat(
-        withTiming(SCREEN_HEIGHT * 0.3, {
-          duration: 2000,
-          easing: Easing.inOut(Easing.ease),
-        }),
-        -1,
-        true,
-      );
+      // 프로그레스 바 애니메이션
+      // 천천히 차오르는 느낌 (0% -> 80% 까지 10초 동안)
+      progressHeight.value = withTiming(SCREEN_HEIGHT * 0.8, {
+        duration: 5500,
+        easing: Easing.out(Easing.exp),
+      });
       overlayOpacity.value = withTiming(1, { duration: 300 });
     } else if (state === 'success') {
       // 성공 애니메이션 시퀀스
@@ -104,7 +102,9 @@ export const PaymentOverlay = (): React.JSX.Element | null => {
       {state === 'pending' && (
         <>
           <View style={styles.pendingContent}>
-            <Text style={styles.pendingText}>결제 수신 중...</Text>
+            <Text style={styles.pendingText}>
+              {type === 'send' ? '결제 전송 중...' : '결제 수신 중...'}
+            </Text>
             <Text style={styles.pendingSubtext}>잠시만 기다려주세요</Text>
           </View>
           <Animated.View style={[styles.progressBar, progressStyle]} />
@@ -120,9 +120,14 @@ export const PaymentOverlay = (): React.JSX.Element | null => {
 
           {/* 금액 표시 */}
           <Animated.View style={textStyle}>
-            <Text style={styles.successAmount}>+{amount.toLocaleString()}</Text>
+            <Text style={styles.successAmount}>
+              {type === 'send' ? '-' : '+'}
+              {amount.toLocaleString()}
+            </Text>
             <Text style={styles.successUnit}>sats</Text>
-            <Text style={styles.successText}>받음!</Text>
+            <Text style={styles.successText}>
+              {type === 'send' ? '보냈음!' : '받음!'}
+            </Text>
           </Animated.View>
         </View>
       )}

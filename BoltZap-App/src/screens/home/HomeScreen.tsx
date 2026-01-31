@@ -22,7 +22,11 @@ interface HomeScreenProps {
 }
 
 export const HomeScreen = ({ state }: HomeScreenProps): React.JSX.Element => {
-  const { status, balance, pendingBalance, logs } = state;
+  const { status, balance, pendingReceiveBalance, pendingSendBalance, logs } =
+    state;
+
+  // 총 잔액: 확정 잔액 + 받는 중 - 보내는 중
+  const totalBalance = balance + pendingReceiveBalance;
 
   return (
     <S.Container>
@@ -30,18 +34,27 @@ export const HomeScreen = ({ state }: HomeScreenProps): React.JSX.Element => {
       <Card>
         <BalanceContainer>
           <BalanceLabel>잔액</BalanceLabel>
-          <BalanceValue>
-            {(balance + pendingBalance).toLocaleString()}
-          </BalanceValue>
+          <BalanceValue>{totalBalance.toLocaleString()}</BalanceValue>
           <BalanceUnit>sats</BalanceUnit>
         </BalanceContainer>
-        {pendingBalance > 0 && (
+        {pendingReceiveBalance > 0 && (
           <>
             <Divider />
             <S.ChannelInfo>
-              <S.ChannelLabel>대기 중 (위 금액에 포함)</S.ChannelLabel>
+              <S.ChannelLabel>받는 중 (위 금액에 포함)</S.ChannelLabel>
               <S.ChannelValue>
-                {pendingBalance.toLocaleString()} sats
+                +{pendingReceiveBalance.toLocaleString()} sats
+              </S.ChannelValue>
+            </S.ChannelInfo>
+          </>
+        )}
+        {pendingSendBalance > 0 && (
+          <>
+            <Divider />
+            <S.ChannelInfo>
+              <S.ChannelLabel>보내는 중</S.ChannelLabel>
+              <S.ChannelValue>
+                -{pendingSendBalance.toLocaleString()} sats
               </S.ChannelValue>
             </S.ChannelInfo>
           </>
@@ -91,6 +104,15 @@ export const HomeScreen = ({ state }: HomeScreenProps): React.JSX.Element => {
           </StatusText>
         </StatusBadge>
       </Card>
+
+      <S.Logs>
+        <S.LogTitle>로그</S.LogTitle>
+        <S.LogScroll>
+          {logs.slice(0, 10).map((log, i) => (
+            <S.LogText key={i}>{log}</S.LogText>
+          ))}
+        </S.LogScroll>
+      </S.Logs>
     </S.Container>
   );
 };

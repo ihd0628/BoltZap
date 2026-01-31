@@ -50,7 +50,8 @@ export interface NodeState {
   mnemonic: string;
   showMnemonic: boolean;
   balance: number;
-  pendingBalance: number;
+  pendingReceiveBalance: number;
+  pendingSendBalance: number;
   payments: Payment[];
   // 결제 받기 관련
   invoice: string;
@@ -71,7 +72,22 @@ export interface NodeActions {
   generateBitcoinAddress: () => Promise<ActionResult>;
   generateAmountlessBitcoinAddress: () => Promise<ActionResult>;
   sendPaymentAction: (dest?: string, amt?: string) => Promise<ActionResult>;
+  estimatePaymentAction: (
+    dest: string,
+    amt: string,
+  ) => Promise<{
+    success: boolean;
+    error?: string;
+    feeSat?: number;
+    prepareResponse?: any;
+    paymentType?: string;
+  }>;
+  executePaymentAction: (
+    prepareResponse: any,
+    paymentType: string,
+  ) => Promise<ActionResult>;
   fetchPayments: () => Promise<void>;
+  parseInput: (input: string) => Promise<any>;
   copyInvoice: () => ActionResult;
   copyBitcoinAddress: () => ActionResult;
   setShowMnemonic: (show: boolean) => void;
@@ -95,13 +111,21 @@ export function useNode(): [NodeState, NodeActions] {
 
   // Wallet State
   const [balance, setBalance] = useState<number>(0);
-  const [pendingBalance, setPendingBalance] = useState<number>(0);
+  const [pendingReceiveBalance, setPendingReceiveBalance] = useState<number>(0);
+  const [pendingSendBalance, setPendingSendBalance] = useState<number>(0);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [mnemonic, setMnemonic] = useState<string>('');
   const [showMnemonic, setShowMnemonic] = useState<boolean>(false);
 
   // Receive State
   const [invoice, setInvoice] = useState<string>('');
+
+  // Overlay Store
+  const {
+    showPending,
+    showSuccess,
+    hide: hideOverlay,
+  } = usePaymentOverlayStore();
   const [invoiceAmount, setInvoiceAmount] = useState<string>('');
   const [bitcoinAddress, setBitcoinAddress] = useState<string>('');
   const [receiveMethod, setReceiveMethod] =
@@ -127,11 +151,8 @@ export function useNode(): [NodeState, NodeActions] {
     try {
       const info = await getInfo();
       setBalance(Number(info.walletInfo.balanceSat));
-      setPendingBalance(
-        Number(
-          info.walletInfo.pendingReceiveSat + info.walletInfo.pendingSendSat,
-        ),
-      );
+      setPendingReceiveBalance(Number(info.walletInfo.pendingReceiveSat));
+      setPendingSendBalance(Number(info.walletInfo.pendingSendSat));
       addLog(`💰 잔액: ${info.walletInfo.balanceSat} sats`);
     } catch (e: unknown) {
       if (e instanceof Error) {
@@ -384,8 +405,14 @@ export function useNode(): [NodeState, NodeActions] {
           });
           addLog(`📋 수수료: ${prepareRes.feesSat} sats`);
 
+          // 보내기 애니메이션 시작
+          showPending('send');
+
           await lnurlPay({ prepareResponse: prepareRes });
           addLog('✅ LNURL 결제 성공!');
+
+          // 성공 애니메이션
+          setTimeout(() => showSuccess(validAmount, 'send'), 500);
 
           setInvoiceToSend('');
           setAmountToSend('');
@@ -413,8 +440,10 @@ export function useNode(): [NodeState, NodeActions] {
           });
           addLog(`📋 수수료: ${prepareRes.feesSat} sats`);
 
+          showPending('send');
           await sendPayment({ prepareResponse: prepareRes });
           addLog('✅ 온체인 결제 성공!');
+          setTimeout(() => showSuccess(validAmount, 'send'), 500);
 
           setInvoiceToSend('');
           setAmountToSend('');
@@ -442,8 +471,10 @@ export function useNode(): [NodeState, NodeActions] {
           });
           addLog(`📋 수수료: ${prepareRes.feesSat} sats`);
 
+          showPending('send');
           await sendPayment({ prepareResponse: prepareRes });
           addLog('✅ Liquid 결제 성공!');
+          setTimeout(() => showSuccess(validAmount, 'send'), 500);
 
           setInvoiceToSend('');
           setAmountToSend('');
@@ -473,8 +504,10 @@ export function useNode(): [NodeState, NodeActions] {
           const prepareRes = await prepareSendPayment(prepareRequest);
           addLog(`📋 수수료: ${prepareRes.feesSat} sats`);
 
+          showPending('send');
           await sendPayment({ prepareResponse: prepareRes });
           addLog('✅ 라이트닝 결제 성공!');
+          setTimeout(() => showSuccess(validAmount || 0, 'send'), 500);
 
           setInvoiceToSend('');
           setAmountToSend('');
@@ -497,6 +530,144 @@ export function useNode(): [NodeState, NodeActions] {
     },
     [isConnected, invoiceToSend, amountToSend, addLog, refreshBalance],
   );
+
+  // 예상 수수료 계산 (Step 1)
+  const estimatePaymentAction = useCallback(
+    async (
+      dest: string,
+      amt: string,
+    ): Promise<{
+      success: boolean;
+      error?: string;
+      feeSat?: number;
+      prepareResponse?: any;
+      paymentType?: string;
+    }> => {
+      if (!isConnected) return { success: false, error: '먼저 연결해주세요.' };
+      if (!dest.trim())
+        return { success: false, error: '인보이스를 입력해주세요.' };
+
+      try {
+        const inputType = await parse(dest.trim());
+        const amount = parseInt(amt.replace(/,/g, ''), 10);
+        const validAmount = !isNaN(amount) && amount > 0 ? amount : undefined;
+
+        // LNURL-Pay
+        if (inputType.type === InputTypeVariant.LN_URL_PAY) {
+          if (!validAmount)
+            return { success: false, error: '금액이 필요합니다.' };
+          const prepareRes = await prepareLnurlPay({
+            data: inputType.data,
+            amount: {
+              type: PayAmountVariant.BITCOIN,
+              receiverAmountSat: validAmount,
+            },
+          });
+          return {
+            success: true,
+            feeSat: prepareRes.feesSat,
+            prepareResponse: prepareRes,
+            paymentType: 'lnurl',
+          };
+        }
+
+        // Bitcoin / Liquid / Lightning
+        let prepareRequest: any = { destination: dest.trim() };
+        if (validAmount) {
+          prepareRequest.amount = {
+            type: PayAmountVariant.BITCOIN,
+            receiverAmountSat: validAmount,
+          };
+        }
+
+        if (
+          inputType.type === InputTypeVariant.BITCOIN_ADDRESS ||
+          inputType.type === InputTypeVariant.LIQUID_ADDRESS ||
+          inputType.type === InputTypeVariant.BOLT11 ||
+          inputType.type === InputTypeVariant.BOLT12_OFFER
+        ) {
+          // 온체인/리퀴드는 금액 필수
+          if (
+            (inputType.type === InputTypeVariant.BITCOIN_ADDRESS ||
+              inputType.type === InputTypeVariant.LIQUID_ADDRESS) &&
+            !validAmount
+          ) {
+            return { success: false, error: '금액을 입력해주세요.' };
+          }
+
+          const prepareRes = await prepareSendPayment(prepareRequest);
+          return {
+            success: true,
+            feeSat: prepareRes.feesSat,
+            prepareResponse: prepareRes,
+            paymentType:
+              inputType.type === InputTypeVariant.BITCOIN_ADDRESS ||
+              inputType.type === InputTypeVariant.LIQUID_ADDRESS
+                ? 'onchain'
+                : 'lightning',
+          };
+        }
+
+        return { success: false, error: '지원하지 않는 결제 타입입니다.' };
+      } catch (e: unknown) {
+        return {
+          success: false,
+          error: e instanceof Error ? e.message : '수수료 계산 실패',
+        };
+      }
+    },
+    [isConnected],
+  );
+
+  // 결제 실행 (Step 2)
+  const executePaymentAction = useCallback(
+    async (
+      prepareResponse: any,
+      paymentType: string,
+    ): Promise<ActionResult> => {
+      try {
+        addLog('⚡ 결제 전송 시작...');
+        showPending('send');
+
+        if (paymentType === 'lnurl') {
+          await lnurlPay({ prepareResponse });
+        } else {
+          await sendPayment({ prepareResponse });
+        }
+
+        addLog('✅ 결제 성공!');
+
+        // 성공 시 금액 추출 (prepareResponse 구조에 따라 다름)
+        // LNURL: prepareResponse.data?....
+        // 하지만 여기선 정확한 금액을 알기 어려울 수 있으니 0으로 하거나 인자로 받아야 함.
+        // 여기선 단순화를 위해 0 처리하고 외부에서 리프레시
+        // 아니면 prepareResponse를 분석
+
+        const amount = prepareResponse.amount?.receiverAmountSat || 0;
+        setTimeout(() => showSuccess(amount, 'send'), 500);
+
+        setInvoiceToSend('');
+        setAmountToSend('');
+        await refreshBalance();
+        return { success: true, message: '전송 완료!' };
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : '전송 실패';
+        addLog(`❌ 결제 실패: ${msg}`);
+        return { success: false, error: msg };
+      }
+    },
+    [addLog, refreshBalance, showPending, showSuccess],
+  );
+
+  // 입력값 파싱 (외부 노출용)
+  const parseInput = useCallback(async (input: string) => {
+    try {
+      return await parse(input);
+    } catch (e) {
+      console.error(e);
+      return null;
+    }
+  }, []);
 
   // 인보이스 복사
   const copyInvoice = useCallback((): ActionResult => {
@@ -527,7 +698,8 @@ export function useNode(): [NodeState, NodeActions] {
     mnemonic,
     showMnemonic,
     balance,
-    pendingBalance,
+    pendingReceiveBalance,
+    pendingSendBalance,
     payments,
     invoice,
     invoiceAmount,
@@ -546,7 +718,10 @@ export function useNode(): [NodeState, NodeActions] {
     generateBitcoinAddress,
     generateAmountlessBitcoinAddress,
     sendPaymentAction,
+    estimatePaymentAction,
+    executePaymentAction,
     fetchPayments,
+    parseInput,
     copyInvoice,
     copyBitcoinAddress,
     setShowMnemonic,
@@ -558,13 +733,6 @@ export function useNode(): [NodeState, NodeActions] {
     isConnected,
   };
 
-  // SDK 이벤트 리스너
-  const {
-    showPending,
-    showSuccess,
-    hide: hideOverlay,
-  } = usePaymentOverlayStore();
-
   useEffect(() => {
     if (status !== 'connected') return;
 
@@ -573,28 +741,41 @@ export function useNode(): [NodeState, NodeActions] {
         const listener: EventListener = event => {
           addLog(`📡 이벤트: ${event.type}`);
 
-          // 결제 감지 (Pending) - 짧은 로딩 후 바로 성공 표시
-          // 어차피 pendingBalance에 반영되고, 받는 것은 확정이므로 바로 축하!
+          // 결제 감지 (Pending) - 받기 결제일 때만 애니메이션 표시
+          // 보내기 결제는 sendPaymentAction에서 직접 처리
           if (
             event.type === SdkEventVariant.PAYMENT_PENDING ||
             event.type === SdkEventVariant.PAYMENT_WAITING_CONFIRMATION
           ) {
-            // 이벤트에서 금액 추출 시도
+            // 이벤트에서 결제 타입과 금액 추출
             const paymentDetails = (event as any).details;
+            console.log('paymentDetails : ', paymentDetails);
+            const paymentType =
+              paymentDetails?.paymentType ||
+              paymentDetails?.payment?.paymentType ||
+              paymentDetails?.type;
             const amount =
               paymentDetails?.amountSat ||
               paymentDetails?.payment?.amountSat ||
               0;
 
-            // 짧은 로딩 표시 후 성공 애니메이션
-            showPending();
-            setTimeout(() => {
-              showSuccess(amount);
-            }, 800); // 0.8초 로딩 후 성공
+            addLog(`💳 결제 타입: ${paymentType}, 금액: ${amount}`);
 
-            // 인보이스 및 주소 초기화 (결제 완료 후 재사용 방지)
-            setInvoice('');
-            setBitcoinAddress('');
+            // 받기 결제일 때만 애니메이션 표시 (receive 또는 RECEIVE)
+            if (paymentType === 'receive' || paymentType === 'RECEIVE') {
+              showPending('receive');
+              setTimeout(() => {
+                showSuccess(amount, 'receive');
+              }, 800);
+
+              // 인보이스 및 주소 초기화 (결제 완료 후 재사용 방지)
+              setInvoice('');
+              setBitcoinAddress('');
+              setInvoiceAmount('');
+              setLightningFee(null);
+              setOnchainFee(null);
+              setReceiveMethod('lightning');
+            }
 
             refreshBalance();
             fetchPayments();
