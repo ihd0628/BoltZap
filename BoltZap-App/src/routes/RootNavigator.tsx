@@ -1,7 +1,7 @@
 import React from 'react';
-import { Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNodeContext } from '../context/NodeContext';
+import { useSplashScreenContext } from '../context/SplashScreenContext';
 import { theme } from '../theme';
 import { type RootTabParamList } from './types';
 import {
@@ -66,6 +66,15 @@ const NodeScreenWrapper = (): React.JSX.Element => {
 // Root Navigator
 // ============================================
 export const RootNavigator = (): React.JSX.Element => {
+  const { closeSplashScreen } = useSplashScreenContext();
+
+  // RootNavigator가 마운트되면 화면 그릴 준비가 완료된 것으로 간주하고 스플래시를 닫습니다.
+  React.useEffect(() => {
+    setTimeout(() => {
+      closeSplashScreen();
+    }, 500);
+  }, [closeSplashScreen]);
+
   return (
     <Tab.Navigator
       screenOptions={{
