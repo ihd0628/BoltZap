@@ -12,6 +12,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { Header } from './src/components/Header';
 import { GlobalModal } from './src/components/Modal/GlobalModal';
+import { PaymentOverlay } from './src/components/PaymentOverlay';
 import { NodeProvider } from './src/context/NodeContext';
 import { RootNavigator } from './src/routes/RootNavigator';
 import { theme } from './src/theme';
@@ -60,6 +61,8 @@ const App = (): React.JSX.Element => {
               </NodeProvider>
               {/* 5. 전역 모달 (Zustand Store 사용, Provider 불필요) */}
               <GlobalModal />
+              {/* 6. 결제 오버레이 애니메이션 */}
+              <PaymentOverlay />
             </NavigationContainer>
           </SplashScreenProvider>
         </KeyboardProvider>

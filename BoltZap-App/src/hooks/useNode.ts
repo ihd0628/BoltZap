@@ -19,6 +19,7 @@ import {
   prepareSendPayment,
   ReceiveAmountVariant,
   receivePayment,
+  SdkEventVariant,
   sendPayment,
 } from '@breeztech/react-native-breez-sdk-liquid';
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -27,6 +28,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import * as Keychain from 'react-native-keychain';
 
 import Config from 'react-native-config';
+import { usePaymentOverlayStore } from '../stores/paymentOverlayStore';
 
 const KEYCHAIN_SERVICE = 'boltzap_wallet';
 
@@ -557,6 +559,12 @@ export function useNode(): [NodeState, NodeActions] {
   };
 
   // SDK 이벤트 리스너
+  const {
+    showPending,
+    showSuccess,
+    hide: hideOverlay,
+  } = usePaymentOverlayStore();
+
   useEffect(() => {
     if (status !== 'connected') return;
 
@@ -565,10 +573,51 @@ export function useNode(): [NodeState, NodeActions] {
         const listener: EventListener = event => {
           addLog(`📡 이벤트: ${event.type}`);
 
-          // 결제 완료 시 잔액 및 내역 갱신
+          // 결제 감지 (Pending) - 짧은 로딩 후 바로 성공 표시
+          // 어차피 pendingBalance에 반영되고, 받는 것은 확정이므로 바로 축하!
           if (
-            event.type === 'paymentSucceeded' ||
-            event.type === 'paymentFailed'
+            event.type === SdkEventVariant.PAYMENT_PENDING ||
+            event.type === SdkEventVariant.PAYMENT_WAITING_CONFIRMATION
+          ) {
+            // 이벤트에서 금액 추출 시도
+            const paymentDetails = (event as any).details;
+            const amount =
+              paymentDetails?.amountSat ||
+              paymentDetails?.payment?.amountSat ||
+              0;
+
+            // 짧은 로딩 표시 후 성공 애니메이션
+            showPending();
+            setTimeout(() => {
+              showSuccess(amount);
+            }, 800); // 0.8초 로딩 후 성공
+
+            // 인보이스 및 주소 초기화 (결제 완료 후 재사용 방지)
+            setInvoice('');
+            setBitcoinAddress('');
+
+            refreshBalance();
+            fetchPayments();
+          }
+
+          // 결제 완료 (Confirmed) - 이미 성공 표시했으면 무시, 아니면 표시
+          if (event.type === SdkEventVariant.PAYMENT_SUCCEEDED) {
+            // Pending에서 이미 표시했을 수 있으므로 잔액만 갱신
+            refreshBalance();
+            fetchPayments();
+          }
+
+          // 결제 실패
+          if (event.type === SdkEventVariant.PAYMENT_FAILED) {
+            hideOverlay();
+            refreshBalance();
+            fetchPayments();
+          }
+
+          // 동기화 완료
+          if (
+            event.type === SdkEventVariant.SYNCED ||
+            event.type === SdkEventVariant.DATA_SYNCED
           ) {
             refreshBalance();
             fetchPayments();
@@ -583,7 +632,7 @@ export function useNode(): [NodeState, NodeActions] {
     };
 
     setupListener();
-  }, [status, addLog, refreshBalance]);
+  }, [status, addLog, refreshBalance, showPending, showSuccess, hideOverlay]);
 
   // 앱 실행 시 자동 연결 (Auto Connect)
   useEffect(() => {
