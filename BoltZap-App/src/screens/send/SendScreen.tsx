@@ -12,6 +12,7 @@ import {
   EmptyText,
   Input,
   InputLabel,
+  QRScanner,
 } from '../../components';
 import { type NodeActions, type NodeState } from '../../hooks/useNode';
 import * as S from './SendScreen.style';
@@ -27,6 +28,12 @@ export const SendScreen = ({
 }: SendScreenProps): React.JSX.Element => {
   const { invoiceToSend } = state;
   const { isConnected, setInvoiceToSend, sendPaymentAction } = actions;
+  const [showScanner, setShowScanner] = React.useState(false);
+
+  const handleScan = (code: string) => {
+    setInvoiceToSend(code);
+    setShowScanner(false);
+  };
 
   return (
     <S.Container>
@@ -53,6 +60,16 @@ export const SendScreen = ({
         >
           <ButtonText>결제 보내기</ButtonText>
         </Button>
+
+        <Button
+          onPress={() => setShowScanner(true)}
+          disabled={!isConnected}
+          variant="secondary"
+          fullWidth
+          style={{ marginTop: 10 }}
+        >
+          <ButtonText variant="secondary">📷 QR 스캔</ButtonText>
+        </Button>
       </Card>
 
       {!isConnected && (
@@ -61,6 +78,12 @@ export const SendScreen = ({
           <EmptyText>먼저 연결해주세요</EmptyText>
         </EmptyState>
       )}
+
+      <QRScanner
+        visible={showScanner}
+        onClose={() => setShowScanner(false)}
+        onScan={handleScan}
+      />
     </S.Container>
   );
 };
