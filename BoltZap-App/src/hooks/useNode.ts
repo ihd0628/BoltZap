@@ -211,7 +211,7 @@ export function useNode(): [NodeState, NodeActions] {
 
     try {
       const amount = parseInt(invoiceAmount, 10);
-      if (isNaN(amount) || amount <= 0) {
+      if (isNaN(amount) || amount < 100 || amount > 25000000) {
         return {
           success: false,
           error: '올바른 금액을 입력해주세요.\n(100 ~ 25,000,000 sats)',
@@ -251,7 +251,7 @@ export function useNode(): [NodeState, NodeActions] {
 
       try {
         const amount = parseInt(invoiceAmount, 10);
-        if (isNaN(amount) || amount <= 0) {
+        if (isNaN(amount) || amount <= 25000) {
           return {
             success: false,
             error: '올바른 금액을 입력해주세요.(최소 25,000 sats)',
