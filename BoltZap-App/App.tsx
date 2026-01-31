@@ -9,6 +9,7 @@ import { StatusBar } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import RNBootSplash from 'react-native-bootsplash';
 
 import { Header } from './src/components/Header';
 import { GlobalModal } from './src/components/Modal/GlobalModal';
@@ -20,6 +21,16 @@ import { theme } from './src/theme';
 // 앱 엔트리포인트
 // ============================================
 const App = (): React.JSX.Element => {
+  React.useEffect(() => {
+    const init = async () => {
+      // ...
+    };
+
+    init().finally(async () => {
+      await RNBootSplash.hide({ fade: true });
+    });
+  }, []);
+
   return (
     // 1. Android 제스처 처리를 위한 최상위 래퍼
     <GestureHandlerRootView style={{ flex: 1 }}>
