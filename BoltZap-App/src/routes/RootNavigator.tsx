@@ -14,8 +14,9 @@ import {
 
 // Screens
 import { HomeScreen } from '../screens/home/HomeScreen';
-import { SendScreen } from '../screens/send/SendScreen';
+import { SendNavigator } from './SendNavigator';
 import { ReceiveScreen } from '../screens/receive/ReceiveScreen';
+
 import { TransactionsScreen } from '../screens/transactions/TransactionsScreen';
 import { NodeScreen } from '../screens/node/NodeScreen';
 
@@ -47,10 +48,7 @@ const HomeScreenWrapper = (): React.JSX.Element => {
   return <HomeScreen state={state} />;
 };
 
-const SendScreenWrapper = (): React.JSX.Element => {
-  const { state, actions } = useNodeContext();
-  return <SendScreen state={state} actions={actions} />;
-};
+// SendScreenWrapper removed as it is replaced by SendNavigator
 
 const ReceiveScreenWrapper = (): React.JSX.Element => {
   const { state, actions } = useNodeContext();
@@ -105,7 +103,7 @@ export const RootNavigator = (): React.JSX.Element => {
       />
       <Tab.Screen
         name="Send"
-        component={SendScreenWrapper}
+        component={SendNavigator}
         options={{
           tabBarLabel: '보내기',
           tabBarIcon: ({ focused }) => (

@@ -6,10 +6,15 @@ import {
   defaultConfig,
   type EventListener,
   getInfo,
+  InputTypeVariant,
   LiquidNetwork,
   listPayments,
+  lnurlPay,
+  parse,
   Payment,
   PaymentMethod,
+  PayAmountVariant,
+  prepareLnurlPay,
   prepareReceivePayment,
   prepareSendPayment,
   ReceiveAmountVariant,
@@ -55,6 +60,7 @@ export interface NodeState {
   logs: string[];
   lightningFee: number | null;
   onchainFee: number | null;
+  amountToSend: string;
 }
 
 export interface NodeActions {
@@ -62,13 +68,14 @@ export interface NodeActions {
   receivePaymentAction: () => Promise<ActionResult>;
   generateBitcoinAddress: () => Promise<ActionResult>;
   generateAmountlessBitcoinAddress: () => Promise<ActionResult>;
-  sendPaymentAction: () => Promise<ActionResult>;
+  sendPaymentAction: (dest?: string, amt?: string) => Promise<ActionResult>;
   fetchPayments: () => Promise<void>;
   copyInvoice: () => ActionResult;
   copyBitcoinAddress: () => ActionResult;
   setShowMnemonic: (show: boolean) => void;
   setInvoiceAmount: (amount: string) => void;
   setInvoiceToSend: (invoice: string) => void;
+  setAmountToSend: (amount: string) => void;
   setReceiveMethod: (method: ReceiveMethod) => void;
   refreshBalance: () => Promise<void>;
   isConnected: boolean;
@@ -102,6 +109,7 @@ export function useNode(): [NodeState, NodeActions] {
 
   // Send State
   const [invoiceToSend, setInvoiceToSend] = useState<string>('');
+  const [amountToSend, setAmountToSend] = useState<string>('');
 
   const isConnected = status === 'connected';
   const listenerIdRef = useRef<string | null>(null);
@@ -317,35 +325,176 @@ export function useNode(): [NodeState, NodeActions] {
     }, [isConnected, addLog]);
 
   // 결제 보내기
-  const sendPaymentAction = useCallback(async (): Promise<ActionResult> => {
-    if (!isConnected) {
-      return { success: false, error: '먼저 연결해주세요.' };
-    }
+  const sendPaymentAction = useCallback(
+    async (dest?: string, amt?: string): Promise<ActionResult> => {
+      if (!isConnected) {
+        return { success: false, error: '먼저 연결해주세요.' };
+      }
 
-    if (!invoiceToSend.trim()) {
-      return { success: false, error: '인보이스를 입력해주세요.' };
-    }
+      const targetDestination = dest || invoiceToSend;
+      const targetAmount = amt || amountToSend;
 
-    try {
-      addLog('⚡ 결제 전송 중...');
+      if (!targetDestination.trim()) {
+        return { success: false, error: '인보이스를 입력해주세요.' };
+      }
 
-      const prepareRes = await prepareSendPayment({
-        destination: invoiceToSend.trim(),
-      });
-      addLog(`📋 수수료: ${prepareRes.feesSat} sats`);
+      try {
+        addLog('⚡ 결제 전송 중...');
 
-      await sendPayment({ prepareResponse: prepareRes });
-      addLog('✅ 결제 성공!');
+        // 1. 입력값 파싱
+        const inputType = await parse(targetDestination.trim());
+        addLog(`📝 입력 타입: ${inputType.type}`);
 
-      setInvoiceToSend('');
-      await refreshBalance();
-      return { success: true, message: '결제가 완료되었습니다!' };
-    } catch (e: unknown) {
-      const errorMessage = e instanceof Error ? e.message : '알 수 없는 오류';
-      addLog(`❌ 결제 실패: ${errorMessage}`);
-      return { success: false, error: errorMessage };
-    }
-  }, [isConnected, invoiceToSend, addLog, refreshBalance]);
+        const amount = parseInt(targetAmount.replace(/,/g, ''), 10);
+        const validAmount = !isNaN(amount) && amount > 0 ? amount : undefined;
+
+        // 2. 지원하지 않는 타입 거부
+        if (
+          inputType.type === InputTypeVariant.LN_URL_WITHDRAW ||
+          inputType.type === InputTypeVariant.LN_URL_AUTH ||
+          inputType.type === InputTypeVariant.LN_URL_ERROR ||
+          inputType.type === InputTypeVariant.NODE_ID ||
+          inputType.type === InputTypeVariant.URL
+        ) {
+          return {
+            success: false,
+            error: `이 타입(${inputType.type})은 결제에 사용할 수 없습니다.`,
+          };
+        }
+
+        // 3. LNURL-Pay 처리
+        if (inputType.type === InputTypeVariant.LN_URL_PAY) {
+          addLog('🔗 LNURL-Pay 처리 중...');
+
+          if (!validAmount) {
+            return {
+              success: false,
+              error: 'LNURL 결제에는 금액이 필요합니다.',
+            };
+          }
+
+          const prepareRes = await prepareLnurlPay({
+            data: inputType.data,
+            amount: {
+              type: PayAmountVariant.BITCOIN,
+              receiverAmountSat: validAmount,
+            },
+          });
+          addLog(`📋 수수료: ${prepareRes.feesSat} sats`);
+
+          await lnurlPay({ prepareResponse: prepareRes });
+          addLog('✅ LNURL 결제 성공!');
+
+          setInvoiceToSend('');
+          setAmountToSend('');
+          await refreshBalance();
+          return { success: true, message: '결제가 완료되었습니다!' };
+        }
+
+        // 4. 온체인 비트코인 주소 처리 (금액 필수)
+        if (inputType.type === InputTypeVariant.BITCOIN_ADDRESS) {
+          addLog('₿ 온체인 비트코인 주소로 전송 중...');
+
+          if (!validAmount) {
+            return {
+              success: false,
+              error: '비트코인 주소로 보내려면 금액을 입력해주세요.',
+            };
+          }
+
+          const prepareRes = await prepareSendPayment({
+            destination: targetDestination.trim(),
+            amount: {
+              type: PayAmountVariant.BITCOIN,
+              receiverAmountSat: validAmount,
+            },
+          });
+          addLog(`📋 수수료: ${prepareRes.feesSat} sats`);
+
+          await sendPayment({ prepareResponse: prepareRes });
+          addLog('✅ 온체인 결제 성공!');
+
+          setInvoiceToSend('');
+          setAmountToSend('');
+          await refreshBalance();
+          return { success: true, message: '결제가 완료되었습니다!' };
+        }
+
+        // 5. Liquid 주소 처리 (금액 필수)
+        if (inputType.type === InputTypeVariant.LIQUID_ADDRESS) {
+          addLog('💧 Liquid 주소로 전송 중...');
+
+          if (!validAmount) {
+            return {
+              success: false,
+              error: 'Liquid 주소로 보내려면 금액을 입력해주세요.',
+            };
+          }
+
+          const prepareRes = await prepareSendPayment({
+            destination: targetDestination.trim(),
+            amount: {
+              type: PayAmountVariant.BITCOIN,
+              receiverAmountSat: validAmount,
+            },
+          });
+          addLog(`📋 수수료: ${prepareRes.feesSat} sats`);
+
+          await sendPayment({ prepareResponse: prepareRes });
+          addLog('✅ Liquid 결제 성공!');
+
+          setInvoiceToSend('');
+          setAmountToSend('');
+          await refreshBalance();
+          return { success: true, message: '결제가 완료되었습니다!' };
+        }
+
+        // 6. BOLT11 / BOLT12 인보이스 처리 (금액은 선택사항 - 인보이스에 포함될 수 있음)
+        if (
+          inputType.type === InputTypeVariant.BOLT11 ||
+          inputType.type === InputTypeVariant.BOLT12_OFFER
+        ) {
+          addLog('⚡ 라이트닝 인보이스로 전송 중...');
+
+          const prepareRequest: any = {
+            destination: targetDestination.trim(),
+          };
+
+          // 금액이 입력된 경우에만 추가 (Zero-amount 인보이스 대응)
+          if (validAmount) {
+            prepareRequest.amount = {
+              type: PayAmountVariant.BITCOIN,
+              receiverAmountSat: validAmount,
+            };
+          }
+
+          const prepareRes = await prepareSendPayment(prepareRequest);
+          addLog(`📋 수수료: ${prepareRes.feesSat} sats`);
+
+          await sendPayment({ prepareResponse: prepareRes });
+          addLog('✅ 라이트닝 결제 성공!');
+
+          setInvoiceToSend('');
+          setAmountToSend('');
+          await refreshBalance();
+          return { success: true, message: '결제가 완료되었습니다!' };
+        }
+
+        // 7. 알 수 없는 타입 (fallback)
+        return {
+          success: false,
+          error: `알 수 없는 결제 타입입니다: ${
+            (inputType as unknown as { type: string }).type
+          }`,
+        };
+      } catch (e: unknown) {
+        const errorMessage = e instanceof Error ? e.message : '알 수 없는 오류';
+        addLog(`❌ 결제 실패: ${errorMessage}`);
+        return { success: false, error: errorMessage };
+      }
+    },
+    [isConnected, invoiceToSend, amountToSend, addLog, refreshBalance],
+  );
 
   // 인보이스 복사
   const copyInvoice = useCallback((): ActionResult => {
@@ -386,6 +535,7 @@ export function useNode(): [NodeState, NodeActions] {
     logs,
     lightningFee,
     onchainFee,
+    amountToSend,
   };
 
   const actions: NodeActions = {
@@ -400,6 +550,7 @@ export function useNode(): [NodeState, NodeActions] {
     setShowMnemonic,
     setInvoiceAmount,
     setInvoiceToSend,
+    setAmountToSend,
     setReceiveMethod,
     refreshBalance,
     isConnected,

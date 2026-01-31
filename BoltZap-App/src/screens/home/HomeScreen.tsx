@@ -29,15 +29,17 @@ export const HomeScreen = ({ state }: HomeScreenProps): React.JSX.Element => {
       {/* 잔액 */}
       <Card>
         <BalanceContainer>
-          <BalanceLabel>사용 가능 잔액</BalanceLabel>
-          <BalanceValue>{balance.toLocaleString()}</BalanceValue>
+          <BalanceLabel>잔액</BalanceLabel>
+          <BalanceValue>
+            {(balance + pendingBalance).toLocaleString()}
+          </BalanceValue>
           <BalanceUnit>sats</BalanceUnit>
         </BalanceContainer>
         {pendingBalance > 0 && (
           <>
             <Divider />
             <S.ChannelInfo>
-              <S.ChannelLabel>대기 중</S.ChannelLabel>
+              <S.ChannelLabel>대기 중 (위 금액에 포함)</S.ChannelLabel>
               <S.ChannelValue>
                 {pendingBalance.toLocaleString()} sats
               </S.ChannelValue>
