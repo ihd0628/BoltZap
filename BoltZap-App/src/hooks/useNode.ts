@@ -5,6 +5,7 @@ import {
   connect,
   defaultConfig,
   type EventListener,
+  fetchOnchainLimits,
   getInfo,
   InputTypeVariant,
   LiquidNetwork,
@@ -16,6 +17,8 @@ import {
   PayAmountVariant,
   prepareLnurlPay,
   prepareReceivePayment,
+  preparePayOnchain,
+  payOnchain,
   prepareSendPayment,
   ReceiveAmountVariant,
   receivePayment,
@@ -571,6 +574,59 @@ export function useNode(): [NodeState, NodeActions] {
           };
         }
 
+        // Bitcoin Address (swap out)
+        if (inputType.type === InputTypeVariant.BITCOIN_ADDRESS) {
+          if (!validAmount) {
+            return { success: false, error: '금액을 입력해주세요.' };
+          }
+          try {
+            const limits = await fetchOnchainLimits();
+            const minSat = limits.send.minSat;
+            const maxSat = limits.send.maxSat;
+
+            if (validAmount < minSat) {
+              return {
+                success: false,
+                error: `최소 전송 금액은 ${minSat.toLocaleString()} sats 입니다.`,
+              };
+            }
+            if (validAmount > maxSat) {
+              return {
+                success: false,
+                error: `최대 전송 금액은 ${maxSat.toLocaleString()} sats 입니다.`,
+              };
+            }
+
+            addLog('₿ 온체인 결제(Swap Out) 준비 중...');
+            const prepareRes = await preparePayOnchain({
+              amount: {
+                type: PayAmountVariant.BITCOIN,
+                receiverAmountSat: validAmount,
+              },
+            });
+
+            // PayOnchainRequest needs address later, so bundle it
+            const prepareResponseWithAddress = {
+              ...prepareRes,
+              _bitcoinAddress: dest.trim(), // Internal use
+            };
+
+            return {
+              success: true,
+              feeSat: prepareRes.totalFeesSat,
+              prepareResponse: prepareResponseWithAddress,
+              paymentType: 'bitcoin', // Custom type for execute
+            };
+          } catch (e: unknown) {
+            const msg =
+              e instanceof Error ? e.message : '온체인 제한 확인 실패';
+            console.log('Failed to fetch onchain limits', e);
+            return { success: false, error: msg };
+          }
+        }
+
+        // Bitcoin / Liquid / Lightning
+
         // Bitcoin / Liquid / Lightning
         let prepareRequest: any = { destination: dest.trim() };
         if (validAmount) {
@@ -581,15 +637,13 @@ export function useNode(): [NodeState, NodeActions] {
         }
 
         if (
-          inputType.type === InputTypeVariant.BITCOIN_ADDRESS ||
           inputType.type === InputTypeVariant.LIQUID_ADDRESS ||
           inputType.type === InputTypeVariant.BOLT11 ||
           inputType.type === InputTypeVariant.BOLT12_OFFER
         ) {
-          // 온체인/리퀴드는 금액 필수
+          // 리퀴드는 금액 필수
           if (
-            (inputType.type === InputTypeVariant.BITCOIN_ADDRESS ||
-              inputType.type === InputTypeVariant.LIQUID_ADDRESS) &&
+            inputType.type === InputTypeVariant.LIQUID_ADDRESS &&
             !validAmount
           ) {
             return { success: false, error: '금액을 입력해주세요.' };
@@ -601,9 +655,8 @@ export function useNode(): [NodeState, NodeActions] {
             feeSat: prepareRes.feesSat,
             prepareResponse: prepareRes,
             paymentType:
-              inputType.type === InputTypeVariant.BITCOIN_ADDRESS ||
               inputType.type === InputTypeVariant.LIQUID_ADDRESS
-                ? 'onchain'
+                ? 'liquid'
                 : 'lightning',
           };
         }
@@ -631,6 +684,16 @@ export function useNode(): [NodeState, NodeActions] {
 
         if (paymentType === 'lnurl') {
           await lnurlPay({ prepareResponse });
+        } else if (paymentType === 'bitcoin') {
+          // Extract address from our custom bundled object
+          const destinationAddress = prepareResponse._bitcoinAddress;
+          if (!destinationAddress) {
+            throw new Error('전송할 비트코인 주소를 찾을 수 없습니다.');
+          }
+          await payOnchain({
+            address: destinationAddress,
+            prepareResponse,
+          });
         } else {
           await sendPayment({ prepareResponse });
         }
