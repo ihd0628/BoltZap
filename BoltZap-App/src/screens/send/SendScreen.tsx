@@ -17,7 +17,10 @@ import {
   QRScanner,
 } from '../../components';
 import { type NodeActions, type NodeState } from '../../hooks/useNode';
-import { type SendStackParamList } from '../../routes/types';
+import {
+  type RootStackParamList,
+  type SendStackParamList,
+} from '../../routes/types';
 import * as S from './SendScreen.style';
 import { useModal } from '../../hooks/useModal';
 import { useLoading } from '../../hooks/useLoading';
@@ -34,7 +37,10 @@ export const SendScreen = ({
   const { invoiceToSend } = state;
   const { isConnected, setInvoiceToSend, sendPaymentAction } = actions;
   const [showScanner, setShowScanner] = React.useState(false);
-  const navigation = useNavigation<StackNavigationProp<SendStackParamList>>();
+  const navigation =
+    useNavigation<
+      StackNavigationProp<SendStackParamList & RootStackParamList>
+    >();
 
   const { showModal } = useModal();
   const { showLoadingIndicator, hideLoadingIndicator } = useLoading();

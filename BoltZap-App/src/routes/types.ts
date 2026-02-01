@@ -1,3 +1,8 @@
+export type RootStackParamList = {
+  MainTabs: undefined;
+  SendAmount: { destination: string; paymentType?: 'lightning' | 'onchain' };
+};
+
 export type RootTabParamList = {
   Home: undefined;
   Send: undefined;
@@ -8,5 +13,4 @@ export type RootTabParamList = {
 
 export type SendStackParamList = {
   SendMain: undefined;
-  SendAmount: { destination: string; paymentType?: 'lightning' | 'onchain' };
 };

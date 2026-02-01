@@ -10,11 +10,10 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { Header } from './src/components/Header';
 import { GlobalModal } from './src/components/Modal/GlobalModal';
 import { PaymentOverlay } from './src/components/PaymentOverlay';
 import { NodeProvider } from './src/context/NodeContext';
-import { RootNavigator } from './src/routes/RootNavigator';
+import { RootStackNavigator } from './src/routes/RootStackNavigator';
 import { theme } from './src/theme';
 import { SplashScreenProvider } from './src/context/SplashScreenContext';
 
@@ -56,8 +55,8 @@ const App = (): React.JSX.Element => {
                   backgroundColor="transparent"
                   translucent
                 />
-                <Header />
-                <RootNavigator />
+
+                <RootStackNavigator />
               </NodeProvider>
               {/* 5. 전역 모달 (Zustand Store 사용, Provider 불필요) */}
               <GlobalModal />

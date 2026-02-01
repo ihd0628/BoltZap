@@ -20,13 +20,13 @@ import {
   Label,
 } from '../../components';
 import { useNodeContext } from '../../context/NodeContext';
-import { type SendStackParamList } from '../../routes/types';
+import { type RootStackParamList } from '../../routes/types';
 import * as S from './SendScreen.style'; // Reusing styles
 import { useModal } from '../../hooks/useModal';
 
-type SendAmountScreenRouteProp = RouteProp<SendStackParamList, 'SendAmount'>;
+type SendAmountScreenRouteProp = RouteProp<RootStackParamList, 'SendAmount'>;
 type SendAmountScreenNavigationProp = StackNavigationProp<
-  SendStackParamList,
+  RootStackParamList,
   'SendAmount'
 >;
 
@@ -92,10 +92,10 @@ export const SendAmountScreen = (): React.JSX.Element => {
             );
 
             if (result.success) {
-              navigation.getParent()?.dispatch(
+              navigation.dispatch(
                 CommonActions.reset({
                   index: 0,
-                  routes: [{ name: 'Home' }],
+                  routes: [{ name: 'MainTabs', params: { screen: 'Home' } }],
                 }),
               );
             } else {
