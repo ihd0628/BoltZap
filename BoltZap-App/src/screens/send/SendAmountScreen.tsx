@@ -44,14 +44,15 @@ export const SendAmountScreen = (): React.JSX.Element => {
 
   const { showModal } = useModal();
 
-  // isLoading이 true가 되면 3초간 터치 차단 (방어 로직)
   React.useEffect(() => {
     if (isLoading) {
       setIsTouchBlocked(true);
       const timer = setTimeout(() => {
         setIsTouchBlocked(false);
-      }, 3000);
+      }, 1000);
       return () => clearTimeout(timer);
+    } else {
+      setIsTouchBlocked(false);
     }
   }, [isLoading]);
 
