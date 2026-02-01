@@ -240,7 +240,10 @@ export function useNode(): [NodeState, NodeActions] {
   // 라이트닝 인보이스 생성
   const receivePaymentAction = useCallback(async (): Promise<ActionResult> => {
     if (!isConnected) {
-      return { success: false, error: '먼저 연결해주세요.' };
+      return {
+        success: false,
+        error: '잠시 연결이 원활하지 않아요.\n앱을 다시 시작해 보시겠어요?',
+      };
     }
 
     try {
@@ -280,7 +283,10 @@ export function useNode(): [NodeState, NodeActions] {
   const generateBitcoinAddress =
     useCallback(async (): Promise<ActionResult> => {
       if (!isConnected) {
-        return { success: false, error: '먼저 연결해주세요.' };
+        return {
+          success: false,
+          error: '잠시 연결이 원활하지 않아요.\n앱을 다시 시작해 보시겠어요?',
+        };
       }
 
       try {
@@ -324,7 +330,10 @@ export function useNode(): [NodeState, NodeActions] {
   const generateAmountlessBitcoinAddress =
     useCallback(async (): Promise<ActionResult> => {
       if (!isConnected) {
-        return { success: false, error: '먼저 연결해주세요.' };
+        return {
+          success: false,
+          error: '잠시 연결이 원활하지 않아요.\n앱을 다시 시작해 보시겠어요?',
+        };
       }
 
       try {
@@ -354,7 +363,10 @@ export function useNode(): [NodeState, NodeActions] {
   const sendPaymentAction = useCallback(
     async (dest?: string, amt?: string): Promise<ActionResult> => {
       if (!isConnected) {
-        return { success: false, error: '먼저 연결해주세요.' };
+        return {
+          success: false,
+          error: '잠시 연결이 원활하지 않아요.\n앱을 다시 시작해 보시겠어요?',
+        };
       }
 
       const targetDestination = dest || invoiceToSend;
@@ -546,7 +558,11 @@ export function useNode(): [NodeState, NodeActions] {
       prepareResponse?: any;
       paymentType?: string;
     }> => {
-      if (!isConnected) return { success: false, error: '먼저 연결해주세요.' };
+      if (!isConnected)
+        return {
+          success: false,
+          error: '잠시 연결이 원활하지 않아요.\n앱을 다시 시작해 보시겠어요?',
+        };
       if (!dest.trim())
         return { success: false, error: '인보이스를 입력해주세요.' };
 
