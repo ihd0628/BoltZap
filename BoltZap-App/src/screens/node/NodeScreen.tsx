@@ -97,7 +97,7 @@ export const NodeScreen = ({
       <Card>
         <CardHeader>
           <CardIcon>🚀</CardIcon>
-          <CardTitle>Breez SDK</CardTitle>
+          <CardTitle>라이트닝 노드</CardTitle>
         </CardHeader>
 
         <ButtonRow>
