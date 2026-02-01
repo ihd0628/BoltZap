@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 
@@ -53,6 +53,16 @@ export const ReceiveScreen = ({
   const { showLoadingIndicator, hideLoadingIndicator } = useLoading();
   const { showModal } = useModal();
 
+  // 생성 버튼을 눌렀을 때의 금액을 저장 (실시간 입력값과 분리)
+  const [confirmedAmount, setConfirmedAmount] = useState<string>('');
+
+  // 결제 방식 변경 시 금액 초기화
+  const handleMethodChange = (method: 'lightning' | 'onchain') => {
+    setInvoiceAmount('');
+    setConfirmedAmount('');
+    setReceiveMethod(method);
+  };
+
   const handleCreate = async () => {
     showLoadingIndicator('QR 코드 생성 중...');
 
@@ -69,6 +79,9 @@ export const ReceiveScreen = ({
       });
       return;
     }
+
+    // 생성 성공 시 현재 금액을 confirmedAmount에 저장
+    setConfirmedAmount(invoiceAmount);
     hideLoadingIndicator();
   };
 
@@ -85,6 +98,10 @@ export const ReceiveScreen = ({
       });
       return;
     }
+
+    // 금액 없이 생성 시 금액 초기화
+    setInvoiceAmount('');
+    setConfirmedAmount('');
     hideLoadingIndicator();
   };
 
@@ -116,7 +133,7 @@ export const ReceiveScreen = ({
         <S.MethodSelector>
           <S.MethodOption
             selected={receiveMethod === 'lightning'}
-            onPress={() => setReceiveMethod('lightning')}
+            onPress={() => handleMethodChange('lightning')}
           >
             <S.MethodText selected={receiveMethod === 'lightning'}>
               라이트닝 ⚡
@@ -124,7 +141,7 @@ export const ReceiveScreen = ({
           </S.MethodOption>
           <S.MethodOption
             selected={receiveMethod === 'onchain'}
-            onPress={() => setReceiveMethod('onchain')}
+            onPress={() => handleMethodChange('onchain')}
           >
             <S.MethodText selected={receiveMethod === 'onchain'}>
               비트코인 ₿
@@ -173,10 +190,10 @@ export const ReceiveScreen = ({
             <Button
               onPress={handleCreate}
               disabled={!isConnected}
-              variant="primary"
+              variant="outline"
               fullWidth
             >
-              <ButtonText variant="primary">
+              <ButtonText variant="outline">
                 {invoiceAmount ? `${invoiceAmount} sats` : '금액'} 지정 주소
                 생성
               </ButtonText>
@@ -208,8 +225,8 @@ export const ReceiveScreen = ({
                   <S.FeeInfo>
                     💰 예상 수수료: {lightningFee.toLocaleString()} sats
                   </S.FeeInfo>
-                  {invoiceAmount &&
-                    parseInt(invoiceAmount.replace(/,/g, '')) > 0 && (
+                  {confirmedAmount &&
+                    parseInt(confirmedAmount.replace(/,/g, '')) > 0 && (
                       <S.FeeInfo
                         style={{
                           color: theme.colors.status.success,
@@ -217,7 +234,7 @@ export const ReceiveScreen = ({
                       >
                         ✨ 실제 수령액:{' '}
                         {(
-                          parseInt(invoiceAmount.replace(/,/g, '')) -
+                          parseInt(confirmedAmount.replace(/,/g, '')) -
                           lightningFee
                         ).toLocaleString()}{' '}
                         sats
@@ -230,8 +247,8 @@ export const ReceiveScreen = ({
                   <S.FeeInfo>
                     💰 예상 수수료: {onchainFee.toLocaleString()} sats
                   </S.FeeInfo>
-                  {invoiceAmount &&
-                    parseInt(invoiceAmount.replace(/,/g, '')) > 0 && (
+                  {confirmedAmount &&
+                    parseInt(confirmedAmount.replace(/,/g, '')) > 0 && (
                       <S.FeeInfo
                         style={{
                           marginTop: 4,
@@ -240,7 +257,8 @@ export const ReceiveScreen = ({
                       >
                         ✨ 실제 수령액:{' '}
                         {(
-                          parseInt(invoiceAmount.replace(/,/g, '')) - onchainFee
+                          parseInt(confirmedAmount.replace(/,/g, '')) -
+                          onchainFee
                         ).toLocaleString()}{' '}
                         sats
                       </S.FeeInfo>
