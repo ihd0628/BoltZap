@@ -1,6 +1,8 @@
 import Clipboard from '@react-native-clipboard/clipboard';
 import React from 'react';
 import { Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 
 import {
   Button,
@@ -13,7 +15,10 @@ import {
   Invoice,
 } from '../../components';
 import { type NodeActions, type NodeState } from '../../hooks/useNode';
+import { type RootStackParamList } from '../../routes/types';
 import * as S from './NodeScreen.style';
+
+type NodeScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
 interface NodeScreenProps {
   state: NodeState;
@@ -24,6 +29,7 @@ export const NodeScreen = ({
   state,
   actions,
 }: NodeScreenProps): React.JSX.Element => {
+  const navigation = useNavigation<NodeScreenNavigationProp>();
   const { mnemonic, showMnemonic, logs } = state;
 
   const { isConnected, initNode, refreshBalance, setShowMnemonic } = actions;
@@ -93,13 +99,23 @@ export const NodeScreen = ({
               </ButtonRow>
             </>
           ) : (
-            <Button
-              variant="secondary"
-              onPress={() => setShowMnemonic(true)}
-              fullWidth
-            >
-              <ButtonText variant="secondary">시드 보기</ButtonText>
-            </Button>
+            <>
+              <Button
+                variant="secondary"
+                onPress={() => setShowMnemonic(true)}
+                fullWidth
+              >
+                <ButtonText variant="secondary">시드 보기</ButtonText>
+              </Button>
+              <Button
+                variant="secondary"
+                onPress={() => navigation.navigate('ImportSeed')}
+                fullWidth
+                style={{ marginTop: 8 }}
+              >
+                <ButtonText variant="secondary">시드 가져오기</ButtonText>
+              </Button>
+            </>
           )}
         </Card>
       ) : null}

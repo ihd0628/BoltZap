@@ -4,6 +4,7 @@ import {
   addEventListener,
   connect,
   defaultConfig,
+  disconnect,
   type EventListener,
   fetchOnchainLimits,
   getInfo,
@@ -99,6 +100,7 @@ export interface NodeActions {
   setAmountToSend: (amount: string) => void;
   setReceiveMethod: (method: ReceiveMethod) => void;
   refreshBalance: () => Promise<void>;
+  replaceSeedAction: (newMnemonic: string) => Promise<ActionResult>;
   isConnected: boolean;
 }
 
@@ -772,6 +774,57 @@ export function useNode(): [NodeState, NodeActions] {
     return { success: false, error: '복사할 주소가 없습니다.' };
   }, [bitcoinAddress]);
 
+  // 시드 교체 (지갑 가져오기)
+  const replaceSeedAction = useCallback(
+    async (newMnemonic: string): Promise<ActionResult> => {
+      try {
+        addLog('🔄 시드 교체 시작...');
+
+        // 1. 기존 연결 해제
+        if (isSDKConnected) {
+          try {
+            await disconnect();
+            isSDKConnected = false;
+            addLog('📴 기존 연결 해제됨');
+          } catch (e) {
+            console.log('Disconnect error (ignored):', e);
+          }
+        }
+
+        // 2. 새 시드를 Keychain에 저장
+        await Keychain.setGenericPassword('mnemonic', newMnemonic, {
+          service: KEYCHAIN_SERVICE,
+          accessible: Keychain.ACCESSIBLE.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+        });
+        addLog('🔐 새 시드 저장 완료');
+        setMnemonic(newMnemonic);
+
+        // 3. 새 시드로 재연결
+        setStatus('connecting');
+        const config = await defaultConfig(
+          LiquidNetwork.MAINNET,
+          BREEZ_API_KEY,
+        );
+        await connect({ mnemonic: newMnemonic, config });
+        isSDKConnected = true;
+        setStatus('connected');
+        addLog('⚡ 새 지갑으로 연결 완료!');
+
+        // 4. 잔액 새로고침
+        await refreshBalance();
+        await fetchPayments();
+
+        return { success: true, message: '시드 교체가 완료되었습니다.' };
+      } catch (e: unknown) {
+        setStatus('error');
+        const errorMsg = e instanceof Error ? e.message : '시드 교체 실패';
+        addLog(`❌ 시드 교체 오류: ${errorMsg}`);
+        return { success: false, error: errorMsg };
+      }
+    },
+    [addLog, refreshBalance, fetchPayments],
+  );
+
   const state: NodeState = {
     status,
     mnemonic,
@@ -809,6 +862,7 @@ export function useNode(): [NodeState, NodeActions] {
     setAmountToSend,
     setReceiveMethod,
     refreshBalance,
+    replaceSeedAction,
     isConnected,
   };
 
