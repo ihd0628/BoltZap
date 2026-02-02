@@ -16,7 +16,11 @@ import {
   Invoice,
   Label,
 } from '../../components';
-import { type NodeActions, type NodeState } from '../../hooks/useNode';
+import {
+  ReceiveMethod,
+  type NodeActions,
+  type NodeState,
+} from '../../hooks/useNode';
 import { useLoading } from '../../hooks/useLoading';
 import { useModal } from '../../hooks/useModal';
 import * as S from './ReceiveScreen.style';
@@ -54,12 +58,13 @@ export const ReceiveScreen = ({
   const { showModal } = useModal();
 
   // 생성 버튼을 눌렀을 때의 금액을 저장 (실시간 입력값과 분리)
-  const [confirmedAmount, setConfirmedAmount] = useState<string>('');
+  const [confirmedAmount, setConfirmedAmount] = useState<
+    Record<ReceiveMethod, string>
+  >({ lightning: '', onchain: '' });
 
   // 결제 방식 변경 시 금액 초기화
-  const handleMethodChange = (method: 'lightning' | 'onchain') => {
+  const handleMethodChange = (method: ReceiveMethod) => {
     setInvoiceAmount('');
-    setConfirmedAmount('');
     setReceiveMethod(method);
   };
 
@@ -81,7 +86,10 @@ export const ReceiveScreen = ({
     }
 
     // 생성 성공 시 현재 금액을 confirmedAmount에 저장
-    setConfirmedAmount(invoiceAmount);
+    setConfirmedAmount({
+      ...confirmedAmount,
+      [receiveMethod]: invoiceAmount,
+    });
     hideLoadingIndicator();
   };
 
@@ -101,7 +109,10 @@ export const ReceiveScreen = ({
 
     // 금액 없이 생성 시 금액 초기화
     setInvoiceAmount('');
-    setConfirmedAmount('');
+    setConfirmedAmount({
+      ...confirmedAmount,
+      [receiveMethod]: '',
+    });
     hideLoadingIndicator();
   };
 
@@ -247,7 +258,8 @@ export const ReceiveScreen = ({
                       <S.HelpIcon>?</S.HelpIcon>
                     </S.HelpButton>
                     {confirmedAmount &&
-                      parseInt(confirmedAmount.replace(/,/g, '')) > 0 && (
+                      parseInt(confirmedAmount.lightning.replace(/,/g, '')) >
+                        0 && (
                         <S.FeeInfo
                           style={{
                             color: theme.colors.status.success,
@@ -255,8 +267,9 @@ export const ReceiveScreen = ({
                         >
                           ✨ 실제 수령액:{' '}
                           {(
-                            parseInt(confirmedAmount.replace(/,/g, '')) -
-                            lightningFee
+                            parseInt(
+                              confirmedAmount.lightning.replace(/,/g, ''),
+                            ) - lightningFee
                           ).toLocaleString()}{' '}
                           sats
                         </S.FeeInfo>
@@ -291,7 +304,8 @@ export const ReceiveScreen = ({
                       <S.HelpIcon>?</S.HelpIcon>
                     </S.HelpButton>
                     {confirmedAmount &&
-                      parseInt(confirmedAmount.replace(/,/g, '')) > 0 && (
+                      parseInt(confirmedAmount.onchain.replace(/,/g, '')) >
+                        0 && (
                         <S.FeeInfo
                           style={{
                             color: theme.colors.status.success,
@@ -299,8 +313,9 @@ export const ReceiveScreen = ({
                         >
                           ✨ 실제 수령액:{' '}
                           {(
-                            parseInt(confirmedAmount.replace(/,/g, '')) -
-                            onchainFee
+                            parseInt(
+                              confirmedAmount.onchain.replace(/,/g, ''),
+                            ) - onchainFee
                           ).toLocaleString()}{' '}
                           sats
                         </S.FeeInfo>
