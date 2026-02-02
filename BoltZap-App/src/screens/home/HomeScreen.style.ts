@@ -2,7 +2,7 @@ import styled from 'styled-components/native';
 
 import { theme } from '../../theme';
 
-export const Container = styled.ScrollView`
+export const Container = styled.View`
   flex: 1;
   padding: ${theme.gap.g16}px;
   background-color: ${theme.colors.background.main};
@@ -58,4 +58,28 @@ export const LogText = styled.Text`
 
 export const LogScroll = styled.ScrollView`
   max-height: 150px;
+`;
+
+export const LegalLinks = styled.View`
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  margin-top: auto;
+  padding-vertical: ${theme.gap.g16}px;
+`;
+
+export const LegalLinkButton = styled.TouchableOpacity`
+  padding: ${theme.gap.g04}px ${theme.gap.g08}px;
+`;
+
+export const LegalLinkText = styled.Text`
+  font-size: ${theme.font.size.s12}px;
+  color: ${theme.colors.text.muted};
+  text-decoration-line: underline;
+`;
+
+export const LegalDivider = styled.Text`
+  font-size: ${theme.font.size.s12}px;
+  color: ${theme.colors.text.muted};
+  margin-horizontal: ${theme.gap.g08}px;
 `;

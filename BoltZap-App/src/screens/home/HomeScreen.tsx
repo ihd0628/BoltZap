@@ -1,4 +1,5 @@
 import React from 'react';
+import { Linking } from 'react-native';
 
 import {
   BalanceContainer,
@@ -21,12 +22,21 @@ interface HomeScreenProps {
   state: NodeState;
 }
 
+const TERMS_URL =
+  'https://forested-tractor-5cc.notion.site/Terms-of-Service-2fb14f5a38bd80f2a72ac4caa172ed46?source=copy_link';
+const PRIVACY_URL =
+  'https://forested-tractor-5cc.notion.site/Privacy-Policy-2fb14f5a38bd802589adcdb13484ccc8?source=copy_link';
+
 export const HomeScreen = ({ state }: HomeScreenProps): React.JSX.Element => {
   const { status, balance, pendingReceiveBalance, pendingSendBalance, logs } =
     state;
 
   // 총 잔액: 확정 잔액 + 받는 중 - 보내는 중
   const totalBalance = balance + pendingReceiveBalance;
+
+  const openLink = (url: string) => {
+    Linking.openURL(url);
+  };
 
   return (
     <S.Container>
@@ -113,6 +123,16 @@ export const HomeScreen = ({ state }: HomeScreenProps): React.JSX.Element => {
           ))}
         </S.LogScroll>
       </S.Logs> */}
+      {/* 법적 고지 링크 */}
+      <S.LegalLinks>
+        <S.LegalLinkButton onPress={() => openLink(TERMS_URL)}>
+          <S.LegalLinkText>Terms of Service</S.LegalLinkText>
+        </S.LegalLinkButton>
+        <S.LegalDivider>|</S.LegalDivider>
+        <S.LegalLinkButton onPress={() => openLink(PRIVACY_URL)}>
+          <S.LegalLinkText>Privacy Policy</S.LegalLinkText>
+        </S.LegalLinkButton>
+      </S.LegalLinks>
     </S.Container>
   );
 };
