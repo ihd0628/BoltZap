@@ -208,63 +208,106 @@ export const ReceiveScreen = ({
             {/* QR 코드 */}
             <View
               style={{
-                flexDirection: 'row',
-                alignItems: 'center',
+                flexDirection: 'column',
                 gap: theme.gap.g08,
               }}
             >
-              <Label>QR 코드</Label>
-              {receiveMethod === 'lightning' && lightningFee !== null && (
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: theme.gap.g04,
-                  }}
-                >
-                  <S.FeeInfo>
-                    💰 예상 수수료: {lightningFee.toLocaleString()} sats
-                  </S.FeeInfo>
-                  {confirmedAmount &&
-                    parseInt(confirmedAmount.replace(/,/g, '')) > 0 && (
-                      <S.FeeInfo
-                        style={{
-                          color: theme.colors.status.success,
-                        }}
-                      >
-                        ✨ 실제 수령액:{' '}
-                        {(
-                          parseInt(confirmedAmount.replace(/,/g, '')) -
-                          lightningFee
-                        ).toLocaleString()}{' '}
-                        sats
-                      </S.FeeInfo>
-                    )}
-                </View>
-              )}
-              {receiveMethod === 'onchain' && onchainFee !== null && (
-                <View>
-                  <S.FeeInfo>
-                    💰 예상 수수료: {onchainFee.toLocaleString()} sats
-                  </S.FeeInfo>
-                  {confirmedAmount &&
-                    parseInt(confirmedAmount.replace(/,/g, '')) > 0 && (
-                      <S.FeeInfo
-                        style={{
-                          marginTop: 4,
-                          color: theme.colors.status.success,
-                        }}
-                      >
-                        ✨ 실제 수령액:{' '}
-                        {(
-                          parseInt(confirmedAmount.replace(/,/g, '')) -
-                          onchainFee
-                        ).toLocaleString()}{' '}
-                        sats
-                      </S.FeeInfo>
-                    )}
-                </View>
-              )}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: theme.gap.g08,
+                }}
+              >
+                <Label>QR 코드</Label>
+                {receiveMethod === 'lightning' && lightningFee !== null && (
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: theme.gap.g04,
+                    }}
+                  >
+                    <S.FeeInfo>
+                      💰 LSP 수수료: {lightningFee.toLocaleString()} sats
+                    </S.FeeInfo>
+                    <S.HelpButton
+                      onPress={() =>
+                        showModal({
+                          title: 'LSP 수수료란?',
+                          message:
+                            '이 수수료는 라이트닝 네트워크 연결을 위해 Breez LSP에 지불되는 비용입니다.\n\n' +
+                            '• BoltZap 개발자는 어떠한 수수료 수익도 취하지 않습니다.\n' +
+                            '• 수수료는 채널 개설 및 유동성 제공 비용으로 사용됩니다.\n' +
+                            '• 수수료율은 네트워크 상황에 따라 변동될 수 있습니다.',
+                          confirmText: '확인',
+                        })
+                      }
+                    >
+                      <S.HelpIcon>?</S.HelpIcon>
+                    </S.HelpButton>
+                    {confirmedAmount &&
+                      parseInt(confirmedAmount.replace(/,/g, '')) > 0 && (
+                        <S.FeeInfo
+                          style={{
+                            color: theme.colors.status.success,
+                          }}
+                        >
+                          ✨ 실제 수령액:{' '}
+                          {(
+                            parseInt(confirmedAmount.replace(/,/g, '')) -
+                            lightningFee
+                          ).toLocaleString()}{' '}
+                          sats
+                        </S.FeeInfo>
+                      )}
+                  </View>
+                )}
+                {receiveMethod === 'onchain' && onchainFee !== null && (
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: theme.gap.g04,
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <S.FeeInfo>
+                      💰 LSP 수수료: {onchainFee.toLocaleString()} sats
+                    </S.FeeInfo>
+                    <S.HelpButton
+                      onPress={() =>
+                        showModal({
+                          title: 'LSP 수수료란?',
+                          message:
+                            '이 수수료는 비트코인 온체인에서 라이트닝으로 스왑하기 위해 Breez LSP에 지불되는 비용입니다.\n\n' +
+                            '• BoltZap 개발자는 어떠한 수수료 수익도 취하지 않습니다.\n' +
+                            '• 수수료는 스왑 처리 및 채널 유동성 비용으로 사용됩니다.\n' +
+                            '• 수수료율은 네트워크 상황에 따라 변동될 수 있습니다.',
+                          confirmText: '확인',
+                        })
+                      }
+                    >
+                      <S.HelpIcon>?</S.HelpIcon>
+                    </S.HelpButton>
+                    {confirmedAmount &&
+                      parseInt(confirmedAmount.replace(/,/g, '')) > 0 && (
+                        <S.FeeInfo
+                          style={{
+                            color: theme.colors.status.success,
+                          }}
+                        >
+                          ✨ 실제 수령액:{' '}
+                          {(
+                            parseInt(confirmedAmount.replace(/,/g, '')) -
+                            onchainFee
+                          ).toLocaleString()}{' '}
+                          sats
+                        </S.FeeInfo>
+                      )}
+                  </View>
+                )}
+              </View>
             </View>
 
             <S.QRContainer>

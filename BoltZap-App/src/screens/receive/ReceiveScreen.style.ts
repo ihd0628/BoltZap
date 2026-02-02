@@ -70,3 +70,18 @@ export const FeeInfo = styled.Text`
   color: ${theme.colors.text.secondary};
   text-align: center;
 `;
+
+export const HelpButton = styled.TouchableOpacity`
+  width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  background-color: ${theme.colors.border};
+  align-items: center;
+  justify-content: center;
+`;
+
+export const HelpIcon = styled.Text`
+  font-size: ${theme.font.size.s10}px;
+  font-weight: ${theme.font.weight.bold};
+  color: ${theme.colors.text.secondary};
+`;
