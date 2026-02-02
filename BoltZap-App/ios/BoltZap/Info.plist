@@ -37,7 +37,9 @@
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>QR 코드를 스캔하기 위해 카메라 권한이 필요합니다.</string>
+	<string>Camera access is required to scan QR codes.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app does not use your location. This permission is required by a third-party library.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>BootSplash</string>
 	<key>UIRequiredDeviceCapabilities</key>
