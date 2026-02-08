@@ -22,6 +22,8 @@ xcuserdata/
 android/.gradle/
 android/app/build/
 android/build/
+android/gradle.properties
+android/app/*.keystore
 *.apk
 *.aab
 
