@@ -1,134 +1,105 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# BoltZap App ⚡️
 
-# Getting Started
+BoltZap의 모바일 애플리케이션(React Native) 프로젝트입니다.
+**Breez SDK Liquid**를 사용하여 비트코인 라이트닝 네트워크 노드를 모바일 기기 내에서 직접 구동합니다.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+---
 
-## Step 1: Start Metro
+## 🏗 아키텍처 (Architecture)
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+BoltZap 앱은 다음과 같은 구조로 설계되었습니다.
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+### 1. **Core Integration (Breez SDK)**
 
-```sh
-# Using npm
-npm start
+- **`@breeztech/react-native-breez-sdk-liquid`**: 라이트닝 노드의 핵심 기능을 담당합니다.
+- **LSP (Liquidity Service Provider)**: Breez 서버와 연결되어 채널 관리 및 유동성을 자동으로 처리합니다.
+- **Greenlight**: Blockstream의 Greenlight 인프라를 활용하여 클라우드에서 노드를 서명하고 관리하지만, 개인 키는 사용자 기기에만 저장됩니다.
 
-# OR using Yarn
-yarn start
+### 2. **State Management (Zustand)**
+
+- 전역 상태 관리를 위해 `Zustand`를 사용합니다.
+- **`useNodeStore`**: 노드의 연결 상태, 잔액, 동기화 상태 등을 관리합니다.
+- **`useFiatStore`**: 실시간 비트코인 ↔ 법정화폐(KRW/USD) 환율 정보를 관리합니다.
+
+### 3. **Persistence (Storage)**
+
+- **`react-native-mmkv`**: 빠른 키-값 저장을 위해 사용 (앱 설정, 캐시 등).
+- **`react-native-keychain`**: 니모닉(Mnemonic)과 같은 민감한 정보를 안전하게 저장.
+
+---
+
+## 📂 폴더 구조 (Directory Structure)
+
+```
+src/
+├── api/          # 외부 API 호출 (Fiat 환율 등)
+├── assets/       # 이미지, 폰트 등 정적 자원
+├── components/   # 재사용 가능한 UI 컴포넌트 (Buttons, Modals 등)
+├── hooks/        # 커스텀 훅 (비즈니스 로직 핵심)
+├── navigation/   # React Navigation 설정 (Stack/Tab)
+├── screens/      # 화면 단위 컴포넌트
+├── stores/       # Zustand 스토어 (전역 상태)
+├── theme/        # 스타일 테마 (Colors, Typography)
+└── utils/        # 유틸리티 함수 (Formatters, Validators)
 ```
 
-## Step 2: Build and run your app
+---
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+## 🧩 주요 커스텀 훅 (Key Hooks)
 
-### Android
+비즈니스 로직은 대부분 `hooks/` 폴더에 분리되어 있습니다.
 
-```sh
-# Using npm
-npm run android
+| 훅 이름          | 설명                                                                                 |
+| :--------------- | :----------------------------------------------------------------------------------- |
+| **`useNode`**    | Breez SDK 초기화, 노드 시작/정지, 정보 동기화 담당. 앱 실행 시 가장 먼저 호출됩니다. |
+| **`usePayment`** | 송금(Send) 및 수금(Receive) 로직 처리. 인보이스 생성 및 결제 실행.                   |
+| **`useBalance`** | 실시간 잔액(Sats) 및 법정화폐 환산 가치를 계산하여 반환.                             |
+| **`useFiat`**    | 외부 API로부터 비트코인 가격 정보를 가져와 업데이트.                                 |
 
-# OR using Yarn
+---
+
+## 💸 결제 처리 흐름 (Payment Flow)
+
+### 1. 보내기 (Send Payment)
+
+1.  **QR 스캔 / 입력**: 사용자가 LNURL 또는 Lightning Invoice를 입력합니다.
+2.  **분석 (Parse)**: 입력된 문자열이 LNURL인지, Bolt11 인보이스인지, 온체인 주소인지 판별합니다.
+3.  **견적 (Estimate)**: 예상 수수료를 계산하여 사용자에게 보여줍니다.
+4.  **실행 (Pay)**: `sdk.sendPayment()`를 호출하여 결제를 진행합니다. 성공 시 `useNodeStore`의 잔액이 업데이트됩니다.
+
+### 2. 받기 (Receive Payment)
+
+1.  **인보이스 생성**: `sdk.receivePayment()`를 호출하여 Bolt11 인보이스를 생성합니다.
+2.  **LSP 연동**: 필요한 경우 LSP가 자동으로 채널을 열어주며, 수수료가 차감될 수 있습니다.
+3.  **대기**: 결제가 완료되면 이벤트를 수신하고 알림을 띄웁니다.
+
+---
+
+## 🛠 개발 환경 설정 (Development)
+
+**필수 요구사항:**
+
+- Node.js v15+
+- Ruby (iOS CocoaPods)
+- JDK 17 (Android)
+
+**설치:**
+
+```bash
+yarn install
+cd ios && pod install && cd ..
+```
+
+**실행:**
+
+```bash
+# iOS
+yarn ios
+
+# Android
 yarn android
 ```
 
-### iOS
+---
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
-```
-
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
-
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
-
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
-
-
-
-
-# Walkthrough
-
-BoltZap (라이트닝 지갑) 실행 가이드
-이제 BoltZap 프로젝트의 모든 코드가 준비되었습니다! LDK Node를 사용하여 테스트넷에서 작동하는 비수탁형(Non-custodial) 라이트닝 노드 앱입니다.
-
-🚀 실행 전 필수 준비사항 (Mac M1/M2/M3 사용자)
-이 프로젝트는 iOS 시뮬레이터를 사용하므로 Xcode(정식 IDE) 가 반드시 설치되어 있어야 합니다.
-
-Xcode 설치: Mac App Store에서 Xcode를 설치하세요. (시간이 좀 걸립니다)
-라이선스 동의: 설치 후 반드시 Xcode를 한 번 실행해서 라이선스에 동의하고 추가 구성 요소를 설치해야 합니다.
-Command Line Tools 설정:
-Xcode 실행 -> 메뉴 상단 Xcode -> Settings (또는 Preferences) -> Locations 탭
-Command Line Tools 항목에서 설치된 버전(예: Xcode 15.x)을 선택해주세요.
-🚀 앱 실행 방법
-준비가 다 되었다면 터미널에서 다음 순서대로 실행하세요:
-
-cd bolt-zap/BoltZap
-npm run ios
-WARNING
-
-Xcode 설정 필요: 현재 사용자 환경의 xcode-select 설정이 올바르지 않아 pod install이 실패했을 수 있습니다. 만약 npm run ios 실행 중 에러가 발생하면, 다음 명령어로 Xcode 경로를 수동으로 설정해 주어야 할 수도 있습니다: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-
-📱 앱 사용법
-노드 시작 (Start Node): 버튼을 누르면 스마트폰 내부에서 LDK 노드가 초기화되고 실행됩니다.
-동기화 (Sync): 블록체인 데이터(Esplora)와 동기화합니다. 첫 실행 시 시간이 조금 걸릴 수 있습니다.
-1000 Sats 받기: 테스트넷 인보이스(QR 문자열)를 생성합니다.
-테스트넷 코인 받기: 생성된 인보이스를 복사하여 HTLC.me 같은 테스트넷 수도꼭지 사이트에 붙여넣으면, 앱으로 1000 사토시가 들어옵니다!
-🛠️ 기술 스택 (BoltZap)
-Framework: React Native 0.83 + TypeScript
-Lightning Node: ldk-node-rn (Rust 기반 LDK 바인딩)
-Storage: react-native-fs
-Network: Testnet (안전하게 가짜 돈으로 테스트)
-이제 여러분은 자신만의 라이트닝 노드를 주머니 속에 가지고 있습니다! ⚡
+**참고:** `.env` 파일에 `BREEZ_API_KEY`가 반드시 설정되어 있어야 노드가 정상적으로 시작됩니다.
