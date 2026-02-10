@@ -55,7 +55,7 @@
 **필수 요구사항:**
 
 - Node.js (v18 이상)
-- Yarn 또는 npm
+- Yarn
 - Android Studio (Android 개발 환경) / Xcode (iOS 개발 환경)
 
 **설치 및 실행:**
