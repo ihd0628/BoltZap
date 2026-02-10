@@ -9,11 +9,13 @@
 
 ## 📱 앱 미리보기 (Software Preview)
 
-|                                  홈 화면                                   |                                받기 화면                                 |
-| :------------------------------------------------------------------------: | :----------------------------------------------------------------------: |
-|   <img src="BoltZap-App/play_store_assets/BoltZap-홈.png" width="250" />   | <img src="BoltZap-App/play_store_assets/BoltZap-받기.png" width="250" /> |
-|                              **보내기 화면**                               |                        **노드 상태 / 거래 내역**                         |
-| <img src="BoltZap-App/play_store_assets/BoltZap-보내기.png" width="250" /> | <img src="BoltZap-App/play_store_assets/BoltZap-노드.png" width="250" /> |
+|                                  홈 화면                                   |                                  받기 화면                                   |
+| :------------------------------------------------------------------------: | :--------------------------------------------------------------------------: |
+|   <img src="BoltZap-App/play_store_assets/BoltZap-홈.png" width="250" />   |   <img src="BoltZap-App/play_store_assets/BoltZap-받기.png" width="250" />   |
+|                              **보내기 화면**                               |                                **거래 내역**                                 |
+| <img src="BoltZap-App/play_store_assets/BoltZap-보내기.png" width="250" /> | <img src="BoltZap-App/play_store_assets/BoltZap-거래내역.png" width="250" /> |
+|                               **노드 상태**                                |
+|  <img src="BoltZap-App/play_store_assets/BoltZap-노드.png" width="250" />  |
 
 ---
 
@@ -24,7 +26,7 @@
 - **온체인(On-Chain) 지원:** 일반적인 비트코인 온체인 거래도 지원하여 유동성을 쉽게 관리할 수 있습니다.
 - **QR 코드 스캔:** QR 코드를 스캔하여 간편하게 송금할 수 있습니다.
 - **백업 및 복구:** 표준 BIP39 니모닉 단어를 통해 지갑을 언제든지 복구할 수 있습니다.
-- **강력한 보안:** 생체 인증 및 안전한 저장소(Keychain)를 활용하여 자산을 보호합니다.
+- **강력한 보안:** 안전한 저장소(Keychain)를 활용하여 자산을 보호합니다.
 
 ---
 
@@ -63,14 +65,14 @@
 cd BoltZap-App
 
 # 의존성 설치
-npm install
+yarn install
 
 # Android 실행
-npm run android
+yarn android
 
 # iOS 실행 (macOS)
 cd ios && pod install && cd ..
-npm run ios
+yarn ios
 ```
 
 ### 2. 환경 변수 설정 (.env)
